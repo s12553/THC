@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>猫国建设者 - 挂机游戏</title>
+    <title>挂机游戏</title>
     <style>
         :root {
             --primary: #FF6B6B;
@@ -380,8 +380,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>🐱 猫国建设者</h1>
-            <p class="subtitle">建设繁荣的猫之国度！科学、宗教、资源管理，一切尽在爪中</p>
+            <h1>fk</h1>
+            <p class="subtitle">fw</p>
         </header>
         
         <main>
@@ -405,7 +405,7 @@
                 <div class="tab-container">
                     <div class="tab-header">
                         <button class="tab-btn active" data-tab="tech">科学研究</button>
-                        <button class="tab-btn" data-tab="religion">猫神信仰</button>
+                        <button class="tab-btn" data-tab="religion">信仰</button>
                     </div>
                     <div class="tab-content">
                         <div id="tech-tab" class="tab-pane active">
@@ -432,7 +432,7 @@
         </aside>
     </div>
     
-    <p class="game-info">游戏正在运行中... 即使关闭页面，下次加载时也会恢复进度（需保存游戏）</p>
+    <p class="game-info">lol</p>
 
     <script>
         // 游戏核心架构 - 设计为易于扩展
@@ -448,23 +448,23 @@
                     log: []
                 };
                 
-                // 游戏配置 - 开发者可在此扩展
+                // 配置
                 this.config = {
                     resources: [
-                        { id: 'catnip', name: '猫薄荷', icon: '🌿', value: 10, rate: 0.1 },
-                        { id: 'wood', name: '木材', icon: '🪵', value: 0, rate: 0 },
-                        { id: 'minerals', name: '矿物', icon: '⛏️', value: 0, rate: 0 },
-                        { id: 'gold', name: '黄金', icon: '💰', value: 0, rate: 0 },
-                        { id: 'science', name: '科学点数', icon: '🔬', value: 0, rate: 0 },
-                        { id: 'faith', name: '信仰点数', icon: '🙏', value: 0, rate: 0 }
+                        { id: 'catnip', name: '食物', icon: '', value: 10, rate: 0.1 },
+                        { id: 'wood', name: '木材', icon: '', value: 0, rate: 0 },
+                        { id: 'minerals', name: '矿物', icon: '', value: 0, rate: 0 },
+                        { id: 'gold', name: '黄金', icon: '', value: 0, rate: 0 },
+                        { id: 'science', name: '科技', icon: '', value: 0, rate: 0 },
+                        { id: 'faith', name: '信仰', icon: '', value: 0, rate: 0 }
                     ],
                     
                     buildings: [
                         { 
                             id: 'catnip_field', 
-                            name: '猫薄荷田', 
-                            icon: '🌾', 
-                            description: '生产猫薄荷的基础设施', 
+                            name: '田', 
+                            icon: '', 
+                            description: '生产食物的基础设施', 
                             cost: { catnip: 15 },
                             effect: { catnip: 0.1 },
                             count: 0
@@ -472,7 +472,7 @@
                         { 
                             id: 'lumber_mill', 
                             name: '木材厂', 
-                            icon: '🏭', 
+                            icon: '', 
                             description: '生产木材的设施', 
                             cost: { catnip: 50, wood: 10 },
                             effect: { wood: 0.2 },
@@ -482,7 +482,7 @@
                         { 
                             id: 'mine', 
                             name: '矿井', 
-                            icon: '⛏️', 
+                            icon: '', 
                             description: '开采矿物的设施', 
                             cost: { catnip: 100, wood: 30 },
                             effect: { minerals: 0.15 },
@@ -492,8 +492,8 @@
                         { 
                             id: 'workshop', 
                             name: '工坊', 
-                            icon: '🔧', 
-                            description: '生产各种物品的工坊', 
+                            icon: '', 
+                            description: '生产各种物品', 
                             cost: { wood: 100, minerals: 50 },
                             effect: { gold: 0.1 },
                             count: 0,
@@ -501,9 +501,9 @@
                         },
                         { 
                             id: 'lab', 
-                            name: '科学实验室', 
-                            icon: '🧪', 
-                            description: '进行科学研究', 
+                            name: '实验室', 
+                            icon: '', 
+                            description: '研究', 
                             cost: { catnip: 500, minerals: 100 },
                             effect: { science: 0.05 },
                             count: 0,
@@ -512,8 +512,8 @@
                         { 
                             id: 'temple', 
                             name: '猫神殿', 
-                            icon: '🏛️', 
-                            description: '收集信仰点数', 
+                            icon: '', 
+                            description: '收集信仰', 
                             cost: { wood: 300, gold: 100 },
                             effect: { faith: 0.03 },
                             count: 0,
