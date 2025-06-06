@@ -91,8 +91,8 @@
 
     <script>
         // 配置 JSONBin.io API
-        const API_URL = '68429ac28a456b7966aa16aa'; // 替换为你的 JSONBin Bin ID
-        const API_KEY = '$2a$10$3cGDwFV3KzKV12EDFkqFB.kzA5GlUW4OVKkuFMOL8jedA6utRyU1e'; // 替换为你的 JSONBin API Key
+        const API_URL = '68429ca48960c979a5a5d736'; // 替换为你的 JSONBin Bin ID
+        const API_KEY = '$2a$10$79pOViUb7DOBTSKYULVOs.MlIF.KWxAOv6t02QXtt24ytPFHFCow.'; // 替换为你的 JSONBin API Key
 
         // 获取留言列表
         async function fetchMessages() {
@@ -192,7 +192,7 @@
             const messages = await fetchMessages();
 
             if (messages.length === 0) {
-                messageList.innerHTML = '<p>暂无留言，快来抢沙发吧！</p>';
+                messageList.innerHTML = '<p>暂无留言</p>';
                 return;
             }
 
