@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSONBin 留言</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            padding: 20px;
+            color: #333;
+        }
+        .message-board {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .message-board h2 {
+            margin-bottom: 20px;
+            color: #4361ee;
+        }
+        .message-board form {
+            margin-bottom: 20px;
+        }
+        .message-board input, .message-board textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .message-board button {
+            background: #4361ee;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .message-board button:hover {
+            background: #3f37c9;
+        }
+        .message-list {
+            margin-top: 20px;
+        }
+        .message-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .message-item:last-child {
+            border-bottom: none;
+        }
+        .message-item .author {
+            font-weight: bold;
+            color: #4361ee;
+        }
+        .message-item .content {
+            margin: 5px 0;
+        }
+        .message-item .timestamp {
+            font-size: 0.85em;
+            color: #999;
+        }
+        .message-item img {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="message-board">
+        <h2>留言板（支持图片上传）</h2>
+        <form id="messageForm">
+            <input type="text" id="author" placeholder="您的昵称" required>
+            <textarea id="content" rows="4" placeholder="请输入留言内容..." required></textarea>
+            <label for="image">上传图片（可选）</label>
+            <input type="file" id="image" accept="image/*">
+            <button type="button" onclick="submitMessage()">提交留言</button>
+        </form>
+        <div class="message-list" id="messageList">
+            <!-- 留言内容将动态生成 -->
+        </div>
+    </div>
+
+    <script>
+        // 配置 JSONBin.io API
+        const API_URL = '68429ac28a456b7966aa16aa'; // 替换为你的 JSONBin Bin ID
+        const API_KEY = '$2a$10$3cGDwFV3KzKV12EDFkqFB.kzA5GlUW4OVKkuFMOL8jedA6utRyU1e'; // 替换为你的 JSONBin API Key
+
+        // 获取留言列表
+        async function fetchMessages() {
+            try {
+                const response = await fetch(API_URL, {
+                    headers: {
+                        'X-Master-Key': API_KEY
+                    }
+                });
+                const data = await response.json();
+                return data.record.messages || [];
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+                alert('无法加载留言，请稍后重试！');
+                return [];
+            }
+        }
+
+        // 将图片文件转换为 Base64
+        function convertImageToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 提交留言
+        async function submitMessage() {
+            const authorInput = document.getElementById('author');
+            const contentInput = document.getElementById('content');
+            const imageInput = document.getElementById('image');
+
+            const author = authorInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!author || !content) {
+                alert('昵称和留言内容不能为空！');
+                return;
+            }
+
+            let imageBase64 = '';
+            if (imageInput.files[0]) {
+                try {
+                    imageBase64 = await convertImageToBase64(imageInput.files[0]);
+                } catch (error) {
+                    console.error('Error converting image to Base64:', error);
+                    alert('图片上传失败，请重试！');
+                    return;
+                }
+            }
+
+            const newMessage = {
+                author,
+                content,
+                image: imageBase64,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                // 获取当前留言列表
+                const messages = await fetchMessages();
+
+                // 添加新留言
+                messages.push(newMessage);
+
+                // 更新留言到 JSONBin
+                await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ messages })
+                });
+
+                // 清空输入框
+                authorInput.value = '';
+                contentInput.value = '';
+                imageInput.value = '';
+
+                // 重新渲染留言列表
+                renderMessages();
+
+            } catch (error) {
+                console.error('Error submitting message:', error);
+                alert('提交失败，请稍后重试！');
+            }
+        }
+
+        // 渲染留言列表
+        async function renderMessages() {
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '<p>加载中...</p>';
+
+            const messages = await fetchMessages();
+
+            if (messages.length === 0) {
+                messageList.innerHTML = '<p>暂无留言，快来抢沙发吧！</p>';
+                return;
+            }
+
+            messageList.innerHTML = messages.map(message => `
+                <div class="message-item">
+                    <div class="author">${message.author}</div>
+                    <div class="content">${message.content}</div>
+                    ${message.image ? `<img src="${message.image}" alt="上传的图片">` : ''}
+                    <div class="timestamp">${new Date(message.timestamp).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        // 页面加载完成后渲染留言
+        document.addEventListener('DOMContentLoaded', renderMessages);
+    </script>
+</body>
+</html>
