@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>留言。</title>
+    <title>留言板（支持图片上传）</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -91,19 +91,16 @@
 
     <script>
         // 配置 JSONBin.io API
-        const API_URL = 'https://api.jsonbin.io/v3/b/68429ca48960c979a5a5d736'; // 替换为你的 JSONBin Bin ID
-        const API_KEY = '$2a$10$79pOViUb7DOBTSKYULVOs.MlIF.KWxAOv6t02QXtt24ytPFHFCow.'; // 替换为你的 JSONBin API Key
+        const API_URL = 'https://api.example.com/messages'; // 改为你的后端 API 地址
+        const IMAGE_UPLOAD_URL = 'https://api.example.com/upload'; // 图片上传的后端 API 地址
 
         // 获取留言列表
         async function fetchMessages() {
             try {
-                const response = await fetch(API_URL, {
-                    headers: {
-                        'X-Master-Key': API_KEY
-                    }
-                });
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
                 const data = await response.json();
-                return data.record.messages || [];
+                return data.messages || [];
             } catch (error) {
                 console.error('Error fetching messages:', error);
                 alert('无法加载留言，请稍后重试！');
@@ -111,14 +108,24 @@
             }
         }
 
-        // 将图片文件转换为 Base64
-        function convertImageToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-                reader.readAsDataURL(file);
-            });
+        // 上传图片并返回 URL
+        async function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch(IMAGE_UPLOAD_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const data = await response.json();
+                return data.imageUrl;
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                alert('图片上传失败，请重试！');
+                return '';
+            }
         }
 
         // 提交留言
@@ -135,49 +142,33 @@
                 return;
             }
 
-            let imageBase64 = '';
+            let imageUrl = '';
             if (imageInput.files[0]) {
-                try {
-                    imageBase64 = await convertImageToBase64(imageInput.files[0]);
-                } catch (error) {
-                    console.error('Error converting image to Base64:', error);
-                    alert('图片上传失败，请重试！');
-                    return;
-                }
+                imageUrl = await uploadImage(imageInput.files[0]);
             }
 
             const newMessage = {
                 author,
                 content,
-                image: imageBase64,
+                image: imageUrl,
                 timestamp: new Date().toISOString()
             };
 
             try {
-                // 获取当前留言列表
-                const messages = await fetchMessages();
-
-                // 添加新留言
-                messages.push(newMessage);
-
-                // 更新留言到 JSONBin
-                await fetch(API_URL, {
-                    method: 'PUT',
+                const response = await fetch(API_URL, {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': API_KEY
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ messages })
+                    body: JSON.stringify(newMessage)
                 });
-
-                // 清空输入框
-                authorInput.value = '';
-                contentInput.value = '';
-                imageInput.value = '';
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
                 // 重新渲染留言列表
                 renderMessages();
-
+                authorInput.value = '';
+                contentInput.value = '';
+                imageInput.value = '';
             } catch (error) {
                 console.error('Error submitting message:', error);
                 alert('提交失败，请稍后重试！');
