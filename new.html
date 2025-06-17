@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCP Foundation - Terminal Access System</title>
     <style>
-        /* CSS remains unchanged from original */
+        /* 保留原有CSS样式不变 */
         * {
             margin: 0;
             padding: 0;
@@ -260,6 +260,24 @@
         .access-denied p {
             color: #ff9999;
         }
+        
+        .system-info {
+            color: #66aaff;
+            background-color: #001a33;
+            padding: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #66aaff;
+        }
+        
+        .data-structure {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
@@ -278,6 +296,7 @@
                 <div class="output-line">Welcome to SCIPNET Direct Storage Terminal. Please enter your login command.</div>
                 <div class="output-line">login</div>
                 <div class="output-line">Please enter user credentials (format: username | password)</div>
+                <div class="system-info">System Update: Data storage has been restructured. Articles and user data are now stored in separate directories.</div>
             </div>
         </div>
         
@@ -293,117 +312,165 @@
     </div>
 
     <script>
-        // =====================
-        // Modular Data Storage
-        // =====================
-        
-        // User credentials and permission levels
-        const credentials = {
-            // Standard users
-            'jvance1@foundation.scp | password9910': { 
-                name: 'Jonathan Vance', 
-                role: 'Research Assistant', 
-                site: 'Site 179', 
-                level: 0 
-            },
-            'hmasterson4@foundation.scp | 12341lovethemarinecorps': { 
-                name: 'Hannibal Masterson', 
-                role: 'Junior Security Specialist', 
-                site: 'Site 179', 
-                level: 1 
-            },
-            'jchoi98@foundation.scp | beethovens9th123': { 
-                name: 'Dr. Jackson Choi', 
-                role: 'Associate Researcher', 
-                site: 'SCP-2317', 
-                level: 2 
+        // =====================================
+        // 数据存储结构改进方案
+        // =====================================
+        // 
+        // 1. 文章数据存储在/articles目录
+        // 2. 用户数据存储在/users目录
+        // 3. 添加新文章使用命令: add access [id] [minLevel] "[title]" "[content]"
+        // 
+        // 示例命令: 
+        //   add access 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe\nDescription: A friendly, gelatinous creature..."
+        //
+        // 数据结构示例:
+        // 
+        // /articles
+        //   ├── 2317.json
+        //   ├── 049.json
+        //   ├── 173.json
+        //   └── 106.json
+        // 
+        // /users
+        //   ├── jvance1@foundation.scp.json
+        //   ├── hmasterson4@foundation.scp.json
+        //   ├── jchoi98@foundation.scp.json
+        //   └── oadmin@foundation.scp.json
+        //
+        // =====================================
+
+        // 模拟文件系统
+        const fileSystem = {
+            articles: {},
+            users: {},
+            
+            // 初始化文件系统
+            init: function() {
+                // 创建articles目录
+                this.articles = {};
+                
+                // 创建users目录
+                this.users = {};
+                
+                // 添加默认文章
+                this.addArticle('2317', {
+                    title: 'SCP-2317',
+                    minLevel: 1,
+                    content: `**Item #**: SCP-2317\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber...`
+                });
+                
+                this.addArticle('049', {
+                    title: 'SCP-049',
+                    minLevel: 0,
+                    content: `**Item #**: SCP-049\n**Object Class**: Euclid\n**Special Containment Procedures**: SCP-049 is contained in a research cell at Site-19...`
+                });
+                
+                this.addArticle('173', {
+                    title: 'SCP-173',
+                    minLevel: 0,
+                    content: `**Item #**: SCP-173\n**Object Class**: Euclid\n**Special Containment Procedures**: The object is contained in a locked containment chamber...`
+                });
+                
+                this.addArticle('106', {
+                    title: 'SCP-106',
+                    minLevel: 2,
+                    content: `**Item #**: SCP-106\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-106 is contained at [DATA EXPUNGED] in a specialized containment facility...`
+                });
+                
+                // 添加默认用户
+                this.addUser('jvance1@foundation.scp | password9910', {
+                    name: 'Jonathan Vance',
+                    role: 'Research Assistant',
+                    site: 'Site 179',
+                    level: 0
+                });
+                
+                this.addUser('hmasterson4@foundation.scp | 12341lovethemarinecorps', {
+                    name: 'Hannibal Masterson',
+                    role: 'Junior Security Specialist',
+                    site: 'Site 179',
+                    level: 1
+                });
+                
+                this.addUser('jchoi98@foundation.scp | beethovens9th123', {
+                    name: 'Dr. Jackson Choi',
+                    role: 'Associate Researcher',
+                    site: 'SCP-2317',
+                    level: 2
+                });
+                
+                this.addUser('oadmin@foundation.scp | omega-level-secure', {
+                    name: 'O5-██',
+                    role: 'Overseer Council Member',
+                    site: 'Area-00',
+                    level: 3
+                });
             },
             
-            // Admin user
-            'oadmin@foundation.scp | omega-level-secure': { 
-                name: 'O5-██', 
-                role: 'Overseer Council Member', 
-                site: 'Area-00', 
-                level: 3 
+            // 添加文章
+            addArticle: function(id, article) {
+                this.articles[id] = article;
+            },
+            
+            // 获取文章
+            getArticle: function(id) {
+                return this.articles[id];
+            },
+            
+            // 列出所有文章
+            listArticles: function() {
+                return Object.keys(this.articles);
+            },
+            
+            // 添加用户
+            addUser: function(credential, userData) {
+                this.users[credential] = userData;
+            },
+            
+            // 获取用户
+            getUser: function(credential) {
+                return this.users[credential];
+            },
+            
+            // 列出所有用户
+            listUsers: function() {
+                return Object.keys(this.users);
+            },
+            
+            // 检查文章是否存在
+            articleExists: function(id) {
+                return this.articles.hasOwnProperty(id);
+            },
+            
+            // 检查用户是否存在
+            userExists: function(credential) {
+                return this.users.hasOwnProperty(credential);
+            },
+            
+            // 显示文件系统结构
+            showStructure: function() {
+                let structure = "SCIPNET File System Structure:\n";
+                structure += "==============================\n\n";
+                
+                structure += "/articles\n";
+                for (const id in this.articles) {
+                    structure += `  ├── ${id}.json\n`;
+                }
+                
+                structure += "\n/users\n";
+                for (const user in this.users) {
+                    // 使用用户名而不是凭据显示
+                    const username = user.split(' | ')[0];
+                    structure += `  ├── ${username}.json\n`;
+                }
+                
+                return structure;
             }
         };
         
-        // Article content and required permissions
-        const articles = {
-            '2317': {
-                title: 'SCP-2317',
-                minLevel: 1,
-                content: `
-**Item #**: SCP-2317  
-**Object Class**: Keter  
-**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber measuring 3m x 3m x 3m at Containment Area-179. Armed guards must be present at all times to prevent unauthorized entry.
+        // 初始化文件系统
+        fileSystem.init();
 
-All personnel assigned to SCP-2317 must undergo mandatory psychological counseling every two months. Personnel must pass rigorous psychological screening before assignment. Required qualifications include: minimum 72% score on Milgram obedience test, unmarried, no descendants, and proven loyalty to the Foundation.
-
-During duty, personnel must wear identity-concealing helmets with voice modulators. Equipment must not be removed in presence of other team members. Off-duty time must be spent in individual quarters.
-
-Monthly, one D-class personnel convicted of murder is assigned to SCP-2317 for execution of 220-Kalabasas Procedure. During procedure execution, at least one Level 3/2317 personnel must monitor via camera feed. After procedure, D-class personnel are to be returned to quarters or terminated via explosive collar.  
-
-**Description**: SCP-2317 is a wooden door and frame originally installed in the basement of a 19th-century brownstone in Massachusetts. When opened, subjects passing through are transported to a parallel reality.  
-
-Exploration of parallel reality (designated SCP-2317-Prime) is limited. The immediate area accessible through SCP-2317 is a curved plain extending several kilometers. Ten meters from SCP-2317 stands seven pillars (designated SCP-2317-A through SCP-2317-G) arranged in a 10-meter diameter circle. Each pillar is approximately 1m in diameter and 7m tall, constructed of marble with incomprehensible bas-relief carvings. The artistic style does not match any known modern, historical, or prehistoric civilization.  
-
-**Addendum 1: 220-Kalabasas Procedure**: The 220-Kalabasas Procedure is a ritual performed daily at solar noon (when the sun is directly above SCP-2317). Execution requires:
-
-<span class="data-deleted">[Per O5-Command] [DATA EXPUNGED. Information transferred to read-only document 2317-220-Kalabasas. Access restricted to personnel with 3/2317 clearance or higher.]</span>
-
-Any deviation in execution may result in XK-class end-of-world scenario. If errors occur, all personnel must immediately withdraw from SCP-2317 and seal the containment chamber. A Class-2 emergency must be reported to the O5 Council immediately. Further instructions will follow emergency protocols.  
-
-<span class="restricted">Additional SCP-2317 information requires Level 3+ clearance (RESTRICTED), insufficient security clearance.</span>
-                `
-            },
-            '049': {
-                title: 'SCP-049',
-                minLevel: 0,
-                content: `
-**Item #**: SCP-049  
-**Object Class**: Euclid  
-**Special Containment Procedures**: SCP-049 is contained in a research cell at Site-19. The containment chamber must maintain a sterile environment with negative-pressure ventilation. Entry requires Level-3 biohazard suits.  
-
-**Description**: SCP-049 is a humanoid entity, 1.9m tall, resembling a medieval plague doctor. The entity claims to be able to cure "The Pestilence," though its methods invariably result in subject death and reanimation as living corpses (designated SCP-049-2).  
-
-**Addendum 049-1**: SCP-049 appears to perceive a global "Pestilence" but cannot provide scientific evidence of its nature. All attempts to obtain medical knowledge have failed.  
-
-**Addendum 049-2**: Following incident 202█, all physical contact experiments are prohibited. SCP-049 demonstrates high lethality to Foundation personnel.
-                `
-            },
-            '173': {
-                title: 'SCP-173',
-                minLevel: 0,
-                content: `
-**Item #**: SCP-173  
-**Object Class**: Euclid  
-**Special Containment Procedures**: The object is contained in a locked containment chamber. Entry requires three personnel present, with at least two maintaining direct visual contact at all times. The chamber must be cleaned weekly.  
-
-**Description**: A statue constructed from concrete and rebar, with traces of Krylon spray paint. When not under direct observation, SCP-173 moves at high velocity. Physical contact results in cervical fracture of the target.  
-
-**Incident Report 173-1**: During 1993 cleaning procedure, three D-class personnel fatalities occurred. Cleaning protocols revised thereafter.  
-
-**Addendum 173-2**: SCP-173 produces waste matter of unknown composition, requiring weekly removal.
-                `
-            },
-            '106': {
-                title: 'SCP-106',
-                minLevel: 2,
-                content: `
-**Item #**: SCP-106  
-**Object Class**: Keter  
-**Special Containment Procedures**: SCP-106 is contained at [DATA EXPUNGED] in a specialized containment facility. The facility consists of 16 layers of reinforced lead-lined steel plates, with each inter-layer space filled with minimum 36cm of industrial-grade anti-corrosive gel. The containment chamber must maintain vacuum conditions with multi-spectral motion sensors.  
-
-**Description**: SCP-106 manifests as an elderly humanoid with highly corrosive properties. It can phase through solid matter, leaving corrosive residue. SCP-106 hunts humans, particularly adolescents, dragging victims into its "pocket dimension."  
-
-**Addendum 106-1**: SCP-106 displays aversion to certain materials, particularly industrial anti-corrosive gel. This property is utilized in containment.  
-
-**Addendum 106-2**: On 200█-██-██, SCP-106 breached containment, resulting in complete decommissioning of Site ██. ██ personnel lost during incident.
-                `
-            }
-        };
-        
         // =====================
         // Terminal Functionality
         // =====================
@@ -413,7 +480,7 @@ Any deviation in execution may result in XK-class end-of-world scenario. If erro
             const outputDiv = document.getElementById('output');
             let currentUser = null;
             
-            // Add command line output
+            // 添加命令输出
             function addOutput(text, isCommand = false) {
                 const line = document.createElement('div');
                 line.className = 'output-line';
@@ -428,7 +495,7 @@ Any deviation in execution may result in XK-class end-of-world scenario. If erro
                 outputDiv.scrollTop = outputDiv.scrollHeight;
             }
             
-            // Show permission warning
+            // 显示权限警告
             function showPermissionWarning(requiredLevel) {
                 const warning = document.createElement('div');
                 warning.className = 'permission-warning';
@@ -445,29 +512,31 @@ Any deviation in execution may result in XK-class end-of-world scenario. If erro
                 outputDiv.scrollTop = outputDiv.scrollHeight;
             }
             
-            // Handle user input
+            // 处理用户输入
             function handleCommand(command) {
                 addOutput(command, true);
                 
                 if (!currentUser) {
-                    // Login handling
+                    // 登录处理
                     if (command.toLowerCase() === 'login') {
                         addOutput('Enter user credentials (format: username | password)');
-                    } else if (credentials[command]) {
-                        currentUser = credentials[command];
+                    } else if (fileSystem.userExists(command)) {
+                        currentUser = fileSystem.getUser(command);
                         addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
                         addOutput('Enter command');
                     } else {
                         addOutput('<div class="error">ERROR: Invalid credentials</div>');
                     }
                 } else {
-                    // Command processing
+                    // 命令处理
                     const parts = command.split(' ');
                     const cmd = parts[0].toLowerCase();
                     
                     if (cmd === 'help') {
                         if (parts[1] === 'access') {
-                            addOutput('<div><strong>ACCESS COMMAND:</strong> Retrieve SCP documentation<br>Usage: ACCESS [SCP-NUMBER]<br>Example: ACCESS 2317<br><br>Available SCPs: 2317, 049, 173, 106</div>');
+                            addOutput('<div><strong>ACCESS COMMAND:</strong> Retrieve SCP documentation<br>Usage: ACCESS [SCP-NUMBER]<br>Example: ACCESS 2317<br><br>Available SCPs: ' + fileSystem.listArticles().join(', ') + '</div>');
+                        } else if (parts[1] === 'add') {
+                            addOutput('<div><strong>ADD ACCESS COMMAND:</strong> Add new SCP documentation<br>Usage: ADD ACCESS [ID] [MIN_LEVEL] "[TITLE]" "[CONTENT]"<br>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe..."</div>');
                         } else {
                             let helpText = '<div>Available commands:<br>';
                             helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
@@ -476,12 +545,13 @@ Any deviation in execution may result in XK-class end-of-world scenario. If erro
                             helpText += 'HELP - Show command information<br>';
                             helpText += 'HELP ACCESS - Show ACCESS command details<br>';
                             
-                            // Admin-only commands
+                            // 管理员命令
                             if (currentUser.level >= 3) {
                                 helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
                                 helpText += 'ADD ACCESS - Add new SCP document<br>';
                                 helpText += 'LIST USERS - Display all authorized users<br>';
-                                helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
+                                helpText += 'LIST ARTICLES - Display all available SCP documents<br>';
+                                helpText += 'FS STRUCTURE - Display file system structure</span>';
                             }
                             
                             helpText += '</div>';
@@ -494,15 +564,18 @@ Any deviation in execution may result in XK-class end-of-world scenario. If erro
                         } else {
                             const articleId = parts[1];
                             
-                            if (!articles[articleId]) {
+                            if (!fileSystem.articleExists(articleId)) {
                                 addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
-                            } else if (currentUser.level < articles[articleId].minLevel) {
-                                showPermissionWarning(articles[articleId].minLevel);
                             } else {
-                                addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${articles[articleId].title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
-                                addOutput('<hr>');
-                                addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${articles[articleId].title}</div>`);
-                                addOutput(`<div class="scp-item">${articles[articleId].content}</div>`);
+                                const article = fileSystem.getArticle(articleId);
+                                if (currentUser.level < article.minLevel) {
+                                    showPermissionWarning(article.minLevel);
+                                } else {
+                                    addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
+                                    addOutput('<hr>');
+                                    addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
+                                    addOutput(`<div class="scp-item">${article.content}</div>`);
+                                }
                             }
                         }
                     } else if (cmd === 'logout') {
@@ -512,7 +585,7 @@ Any deviation in execution may result in XK-class end-of-world scenario. If erro
                     } else if (cmd === 'clear') {
                         outputDiv.innerHTML = '';
                     } else if (cmd === 'add' && parts[1]?.toLowerCase() === 'access') {
-                        // Add new document command
+                        // 添加新文档命令
                         if (currentUser.level < 3) {
                             addOutput('<div class="error">ERROR: Requires Level 3 admin privileges</div>');
                             return;
@@ -520,53 +593,77 @@ Any deviation in execution may result in XK-class end-of-world scenario. If erro
                         
                         if (parts.length < 5) {
                             addOutput('<div class="error">Format: ADD ACCESS [ID] [MIN_LEVEL] "[TITLE]" "[CONTENT]"</div>');
-                            addOutput('<div>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999..."</div>');
+                            addOutput('<div>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe..."</div>');
                             return;
                         }
                         
                         const articleId = parts[2];
                         const minLevel = parseInt(parts[3]);
-                        const title = parts[4].replace(/"/g, '');
-                        const content = command.split('"')[2]?.trim() || '';
                         
-                        if (!articleId || isNaN(minLevel) || !title || !content) {
-                            addOutput('<div class="error">ERROR: Invalid parameter format</div>');
+                        if (isNaN(minLevel)) {
+                            addOutput('<div class="error">ERROR: Invalid minimum level</div>');
                             return;
                         }
                         
-                        // Create new document
-                        articles[articleId] = {
+                        // 提取标题和内容
+                        const titleStart = command.indexOf('"');
+                        const titleEnd = command.indexOf('"', titleStart + 1);
+                        const contentStart = command.indexOf('"', titleEnd + 1);
+                        const contentEnd = command.indexOf('"', contentStart + 1);
+                        
+                        if (titleStart === -1 || titleEnd === -1 || contentStart === -1 || contentEnd === -1) {
+                            addOutput('<div class="error">ERROR: Invalid format. Make sure title and content are in double quotes</div>');
+                            return;
+                        }
+                        
+                        const title = command.substring(titleStart + 1, titleEnd);
+                        const content = command.substring(contentStart + 1, contentEnd);
+                        
+                        // 创建新文档
+                        fileSystem.addArticle(articleId, {
                             title: title,
                             minLevel: minLevel,
                             content: content
-                        };
+                        });
                         
                         addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
+                        addOutput('<div class="system-info">Article stored in /articles directory</div>');
                     } else if (cmd === 'list') {
                         if (parts[1]?.toLowerCase() === 'users' && currentUser.level >= 3) {
                             addOutput('<div class="admin-only">Authorized users:</div>');
-                            for (const [cred, user] of Object.entries(credentials)) {
-                                addOutput(`<div>${user.name} | ${user.role} | Level: ${user.level}</div>`);
+                            for (const [cred, user] of Object.entries(fileSystem.users)) {
+                                const username = cred.split(' | ')[0];
+                                addOutput(`<div>${user.name} | ${user.role} | Level: ${user.level} | Username: ${username}</div>`);
                             }
                         } else if (parts[1]?.toLowerCase() === 'articles') {
                             addOutput('<div>Available documents:</div>');
-                            for (const [id, article] of Object.entries(articles)) {
+                            for (const id of fileSystem.listArticles()) {
+                                const article = fileSystem.getArticle(id);
                                 addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel})</div>`);
                             }
                         } else {
                             addOutput('<div class="error">ERROR: Unknown command</div>');
                         }
+                    } else if (cmd === 'fs' && parts[1]?.toLowerCase() === 'structure') {
+                        if (currentUser.level < 3) {
+                            addOutput('<div class="error">ERROR: Requires Level 3 admin privileges</div>');
+                            return;
+                        }
+                        
+                        const structure = fileSystem.showStructure();
+                        addOutput('<div class="system-info">File System Structure:</div>');
+                        addOutput(`<div class="data-structure">${structure}</div>`);
                     } else {
                         addOutput('<div class="error">ERROR: Unknown command</div>');
                         addOutput('<div>Type HELP for available commands</div>');
                     }
                 }
                 
-                // Clear input field and refocus
+                // 清空输入框并重新聚焦
                 inputField.value = '';
             }
             
-            // Event listener
+            // 事件监听
             inputField.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     const command = inputField.value.trim();
