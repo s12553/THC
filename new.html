@@ -1,19 +1,283 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <!-- 样式保持不变 -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCP Foundation - Terminal Access System</title>
+    <style>
+        /* CSS remains unchanged from original */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(#2a2a2a 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .terminal-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: #0f0f0f;
+            border: 1px solid #444;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0, 100, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .terminal-header {
+            background: linear-gradient(to right, #003300, #002200);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #004400;
+        }
+        
+        .header-title {
+            color: #00cc00;
+            font-weight: bold;
+            flex-grow: 1;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .header-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .btn-red { background-color: #ff5f56; }
+        .btn-yellow { background-color: #ffbd2e; }
+        .btn-green { background-color: #27c93f; }
+        
+        .terminal-body {
+            padding: 20px;
+            min-height: 500px;
+            background-color: #0c0c0c;
+            overflow-y: auto;
+            max-height: 70vh;
+            border: 1px solid #222;
+            margin: 10px;
+            border-radius: 3px;
+        }
+        
+        .terminal-output {
+            white-space: pre-wrap;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+        
+        .output-line {
+            margin-bottom: 8px;
+        }
+        
+        .command-input {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #080808;
+            border-top: 1px solid #222;
+        }
+        
+        .prompt {
+            color: #00cc00;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        #input-field {
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 15px;
+            width: 100%;
+            outline: none;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .scp-header {
+            color: #00cc00;
+            text-align: center;
+            margin: 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+        
+        .scp-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-left: 2px solid #004400;
+        }
+        
+        .scp-title {
+            color: #00cc00;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .scp-content {
+            color: #cccccc;
+            line-height: 1.6;
+        }
+        
+        .warning {
+            color: #ff5555;
+            font-weight: bold;
+            background-color: #220000;
+            padding: 10px;
+            border: 1px solid #ff0000;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .restricted {
+            color: #ffaa00;
+            background-color: #1f1f00;
+            padding: 5px;
+            border-left: 3px solid #ffaa00;
+            margin-top: 10px;
+        }
+        
+        .data-deleted {
+            background-color: #220000;
+            color: #ff5555;
+            padding: 2px 5px;
+            display: inline-block;
+        }
+        
+        .permission-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .level-0 { background-color: #003366; color: #66aaff; }
+        .level-1 { background-color: #336600; color: #99ff66; }
+        .level-2 { background-color: #663300; color: #ffcc66; }
+        .level-3 { background-color: #660033; color: #ff66aa; }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #555;
+            font-size: 12px;
+            border-top: 1px solid #222;
+            background-color: #080808;
+        }
+        
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background-color: #00cc00;
+            margin-left: 5px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .user-info {
+            color: #66aaff;
+            margin: 10px 0;
+            padding-left: 5px;
+            border-left: 2px solid #66aaff;
+        }
+        
+        .error {
+            color: #ff5555;
+            background-color: #220000;
+            padding: 5px;
+            margin: 5px 0;
+        }
+        
+        .success {
+            color: #55ff55;
+            background-color: #002200;
+            padding: 5px;
+            margin: 5px 0;
+        }
+        
+        .admin-only {
+            color: #ff66aa;
+            border-left: 2px solid #ff66aa;
+            padding: 5px;
+            margin: 10px 0;
+        }
+        
+        .permission-warning {
+            background: linear-gradient(45deg, #220000, #440000);
+            border: 1px solid #ff5555;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+        
+        .access-denied {
+            text-align: center;
+            padding: 20px;
+            background: repeating-linear-gradient(
+                45deg,
+                #1a0000,
+                #1a0000 10px,
+                #220000 10px,
+                #220000 20px
+            );
+            border: 1px solid #ff0000;
+            margin: 20px 0;
+        }
+        
+        .access-denied h2 {
+            color: #ff5555;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .access-denied p {
+            color: #ff9999;
+        }
+    </style>
 </head>
 <body>
     <div class="terminal-container">
         <div class="terminal-header">
-            <div class="header-title">SCIPNET 直接存储终端 - 安全协议 2317-Alpha</div>
-            <!-- 按钮代码 -->
+            <div class="header-title">SCIPNET Direct Storage Terminal - Security Protocol 2317-Alpha</div>
+            <div class="header-buttons">
+                <div class="header-btn btn-red"></div>
+                <div class="header-btn btn-yellow"></div>
+                <div class="header-btn btn-green"></div>
+            </div>
         </div>
         
         <div class="terminal-body">
             <div class="terminal-output" id="output">
-                <!-- 移除了所有教程信息 -->
-                <div class="output-line">欢迎登陆SCIPNET直接存储终端</div>
+                <div class="output-line">Welcome to SCIPNET Direct Storage Terminal. Please enter your login command.</div>
+                <div class="output-line">login</div>
+                <div class="output-line">Please enter user credentials (format: username | password)</div>
             </div>
         </div>
         
@@ -24,74 +288,285 @@
         </div>
         
         <div class="footer">
-            SCP基金会 - 安全信息管理系统 | 当前时间: 2025-06-17 14:38:22 UTC | 安全等级: 伽马
+            SCP Foundation - Secure Information Management System | Current Time: 2025-06-17 14:38:22 UTC | Security Level: Gamma
         </div>
     </div>
 
     <script>
-        // ... 数据存储部分保持不变 ...
+        // =====================
+        // Modular Data Storage
+        // =====================
+        
+        // User credentials and permission levels
+        const credentials = {
+            // Standard users
+            'jvance1@foundation.scp | password9910': { 
+                name: 'Jonathan Vance', 
+                role: 'Research Assistant', 
+                site: 'Site 179', 
+                level: 0 
+            },
+            'hmasterson4@foundation.scp | 12341lovethemarinecorps': { 
+                name: 'Hannibal Masterson', 
+                role: 'Junior Security Specialist', 
+                site: 'Site 179', 
+                level: 1 
+            },
+            'jchoi98@foundation.scp | beethovens9th123': { 
+                name: 'Dr. Jackson Choi', 
+                role: 'Associate Researcher', 
+                site: 'SCP-2317', 
+                level: 2 
+            },
+            
+            // Admin user
+            'oadmin@foundation.scp | omega-level-secure': { 
+                name: 'O5-██', 
+                role: 'Overseer Council Member', 
+                site: 'Area-00', 
+                level: 3 
+            }
+        };
+        
+        // Article content and required permissions
+        const articles = {
+            '2317': {
+                title: 'SCP-2317',
+                minLevel: 1,
+                content: `
+**Item #**: SCP-2317  
+**Object Class**: Keter  
+**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber measuring 3m x 3m x 3m at Containment Area-179. Armed guards must be present at all times to prevent unauthorized entry.
 
+All personnel assigned to SCP-2317 must undergo mandatory psychological counseling every two months. Personnel must pass rigorous psychological screening before assignment. Required qualifications include: minimum 72% score on Milgram obedience test, unmarried, no descendants, and proven loyalty to the Foundation.
+
+During duty, personnel must wear identity-concealing helmets with voice modulators. Equipment must not be removed in presence of other team members. Off-duty time must be spent in individual quarters.
+
+Monthly, one D-class personnel convicted of murder is assigned to SCP-2317 for execution of 220-Kalabasas Procedure. During procedure execution, at least one Level 3/2317 personnel must monitor via camera feed. After procedure, D-class personnel are to be returned to quarters or terminated via explosive collar.  
+
+**Description**: SCP-2317 is a wooden door and frame originally installed in the basement of a 19th-century brownstone in Massachusetts. When opened, subjects passing through are transported to a parallel reality.  
+
+Exploration of parallel reality (designated SCP-2317-Prime) is limited. The immediate area accessible through SCP-2317 is a curved plain extending several kilometers. Ten meters from SCP-2317 stands seven pillars (designated SCP-2317-A through SCP-2317-G) arranged in a 10-meter diameter circle. Each pillar is approximately 1m in diameter and 7m tall, constructed of marble with incomprehensible bas-relief carvings. The artistic style does not match any known modern, historical, or prehistoric civilization.  
+
+**Addendum 1: 220-Kalabasas Procedure**: The 220-Kalabasas Procedure is a ritual performed daily at solar noon (when the sun is directly above SCP-2317). Execution requires:
+
+<span class="data-deleted">[Per O5-Command] [DATA EXPUNGED. Information transferred to read-only document 2317-220-Kalabasas. Access restricted to personnel with 3/2317 clearance or higher.]</span>
+
+Any deviation in execution may result in XK-class end-of-world scenario. If errors occur, all personnel must immediately withdraw from SCP-2317 and seal the containment chamber. A Class-2 emergency must be reported to the O5 Council immediately. Further instructions will follow emergency protocols.  
+
+<span class="restricted">Additional SCP-2317 information requires Level 3+ clearance (RESTRICTED), insufficient security clearance.</span>
+                `
+            },
+            '049': {
+                title: 'SCP-049',
+                minLevel: 0,
+                content: `
+**Item #**: SCP-049  
+**Object Class**: Euclid  
+**Special Containment Procedures**: SCP-049 is contained in a research cell at Site-19. The containment chamber must maintain a sterile environment with negative-pressure ventilation. Entry requires Level-3 biohazard suits.  
+
+**Description**: SCP-049 is a humanoid entity, 1.9m tall, resembling a medieval plague doctor. The entity claims to be able to cure "The Pestilence," though its methods invariably result in subject death and reanimation as living corpses (designated SCP-049-2).  
+
+**Addendum 049-1**: SCP-049 appears to perceive a global "Pestilence" but cannot provide scientific evidence of its nature. All attempts to obtain medical knowledge have failed.  
+
+**Addendum 049-2**: Following incident 202█, all physical contact experiments are prohibited. SCP-049 demonstrates high lethality to Foundation personnel.
+                `
+            },
+            '173': {
+                title: 'SCP-173',
+                minLevel: 0,
+                content: `
+**Item #**: SCP-173  
+**Object Class**: Euclid  
+**Special Containment Procedures**: The object is contained in a locked containment chamber. Entry requires three personnel present, with at least two maintaining direct visual contact at all times. The chamber must be cleaned weekly.  
+
+**Description**: A statue constructed from concrete and rebar, with traces of Krylon spray paint. When not under direct observation, SCP-173 moves at high velocity. Physical contact results in cervical fracture of the target.  
+
+**Incident Report 173-1**: During 1993 cleaning procedure, three D-class personnel fatalities occurred. Cleaning protocols revised thereafter.  
+
+**Addendum 173-2**: SCP-173 produces waste matter of unknown composition, requiring weekly removal.
+                `
+            },
+            '106': {
+                title: 'SCP-106',
+                minLevel: 2,
+                content: `
+**Item #**: SCP-106  
+**Object Class**: Keter  
+**Special Containment Procedures**: SCP-106 is contained at [DATA EXPUNGED] in a specialized containment facility. The facility consists of 16 layers of reinforced lead-lined steel plates, with each inter-layer space filled with minimum 36cm of industrial-grade anti-corrosive gel. The containment chamber must maintain vacuum conditions with multi-spectral motion sensors.  
+
+**Description**: SCP-106 manifests as an elderly humanoid with highly corrosive properties. It can phase through solid matter, leaving corrosive residue. SCP-106 hunts humans, particularly adolescents, dragging victims into its "pocket dimension."  
+
+**Addendum 106-1**: SCP-106 displays aversion to certain materials, particularly industrial anti-corrosive gel. This property is utilized in containment.  
+
+**Addendum 106-2**: On 200█-██-██, SCP-106 breached containment, resulting in complete decommissioning of Site ██. ██ personnel lost during incident.
+                `
+            }
+        };
+        
+        // =====================
+        // Terminal Functionality
+        // =====================
+        
         document.addEventListener('DOMContentLoaded', function() {
             const inputField = document.getElementById('input-field');
             const outputDiv = document.getElementById('output');
             let currentUser = null;
             
+            // Add command line output
             function addOutput(text, isCommand = false) {
-                // ... 保持不变 ...
+                const line = document.createElement('div');
+                line.className = 'output-line';
+                
+                if (isCommand) {
+                    line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
+                } else {
+                    line.innerHTML = text;
+                }
+                
+                outputDiv.appendChild(line);
+                outputDiv.scrollTop = outputDiv.scrollHeight;
             }
             
+            // Show permission warning
             function showPermissionWarning(requiredLevel) {
-                // ... 保持不变 ...
+                const warning = document.createElement('div');
+                warning.className = 'permission-warning';
+                warning.innerHTML = `
+                    <div class="access-denied">
+                        <h2>ACCESS DENIED</h2>
+                        <p>Warning: Insufficient clearance level</p>
+                        <p>Required clearance: Level ${requiredLevel}+</p>
+                        <p>Your clearance: Level ${currentUser.level}</p>
+                    </div>
+                    <p>Contact site administrator or O5 Council for access upgrade</p>
+                `;
+                outputDiv.appendChild(warning);
+                outputDiv.scrollTop = outputDiv.scrollHeight;
             }
             
+            // Handle user input
             function handleCommand(command) {
                 addOutput(command, true);
                 
                 if (!currentUser) {
-                    if (command.toLowerCase() === 'help') {
-                        addOutput('<div>可用命令：<br>LOGIN - 开始认证过程<br>HELP - 显示帮助信息</div>');
-                    } else if (command.toLowerCase() === 'login') {
-                        addOutput('请输入用户凭证 (格式: 用户名 | 密码)');
+                    // Login handling
+                    if (command.toLowerCase() === 'login') {
+                        addOutput('Enter user credentials (format: username | password)');
                     } else if (credentials[command]) {
                         currentUser = credentials[command];
-                        addOutput(`<div class="user-info">许可接受。用户名：${currentUser.name}<br>职位：${currentUser.role}，${currentUser.site}<br>权限级别: ${currentUser.level}</div>`);
-                        addOutput('输入命令或HELP查看可用命令');
+                        addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+                        addOutput('Enter command');
                     } else {
-                        addOutput('<div class="error">错误：无效命令或凭证</div>');
-                        addOutput('<div>输入HELP查看可用命令</div>');
+                        addOutput('<div class="error">ERROR: Invalid credentials</div>');
                     }
                 } else {
+                    // Command processing
                     const parts = command.split(' ');
                     const cmd = parts[0].toLowerCase();
                     
                     if (cmd === 'help') {
                         if (parts[1] === 'access') {
-                            addOutput('<div><strong>ACCESS命令：</strong> 检索SCP文档<br>用法：ACCESS [SCP编号]<br>示例：ACCESS 2317<br><br>可用SCP：2317, 049, 173, 106<br><br>登录凭证格式：用户名 | 密码</div>');
+                            addOutput('<div><strong>ACCESS COMMAND:</strong> Retrieve SCP documentation<br>Usage: ACCESS [SCP-NUMBER]<br>Example: ACCESS 2317<br><br>Available SCPs: 2317, 049, 173, 106</div>');
                         } else {
-                            let helpText = '<div>可用命令：<br>';
-                            helpText += 'ACCESS [SCP编号] - 检索SCP文档<br>';
-                            helpText += 'LOGOUT - 结束当前会话<br>';
-                            helpText += 'CLEAR - 清屏<br>';
-                            helpText += 'HELP - 显示帮助信息<br>';
-                            helpText += 'HELP ACCESS - 显示ACCESS命令详情<br>';
+                            let helpText = '<div>Available commands:<br>';
+                            helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
+                            helpText += 'LOGOUT - Terminate current session<br>';
+                            helpText += 'CLEAR - Clear terminal screen<br>';
+                            helpText += 'HELP - Show command information<br>';
+                            helpText += 'HELP ACCESS - Show ACCESS command details<br>';
                             
+                            // Admin-only commands
                             if (currentUser.level >= 3) {
-                                helpText += '<span class="admin-only">管理员命令:<br>';
-                                helpText += 'ADD ACCESS - 添加新文档<br>';
-                                helpText += 'LIST USERS - 显示所有用户<br>';
-                                helpText += 'LIST ARTICLES - 显示所有文档</span>';
+                                helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
+                                helpText += 'ADD ACCESS - Add new SCP document<br>';
+                                helpText += 'LIST USERS - Display all authorized users<br>';
+                                helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
                             }
                             
                             helpText += '</div>';
                             addOutput(helpText);
                         }
-                    } 
-                    // ... 其他命令处理保持不变 ...
+                    } else if (cmd === 'access') {
+                        if (parts.length < 2) {
+                            addOutput('<div class="error">ERROR: Missing SCP designation</div>');
+                            addOutput('<div>Usage: ACCESS [SCP-NUMBER]</div>');
+                        } else {
+                            const articleId = parts[1];
+                            
+                            if (!articles[articleId]) {
+                                addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
+                            } else if (currentUser.level < articles[articleId].minLevel) {
+                                showPermissionWarning(articles[articleId].minLevel);
+                            } else {
+                                addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${articles[articleId].title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
+                                addOutput('<hr>');
+                                addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${articles[articleId].title}</div>`);
+                                addOutput(`<div class="scp-item">${articles[articleId].content}</div>`);
+                            }
+                        }
+                    } else if (cmd === 'logout') {
+                        addOutput(`<div>User ${currentUser.name} logged out</div>`);
+                        currentUser = null;
+                        addOutput('Enter user credentials');
+                    } else if (cmd === 'clear') {
+                        outputDiv.innerHTML = '';
+                    } else if (cmd === 'add' && parts[1]?.toLowerCase() === 'access') {
+                        // Add new document command
+                        if (currentUser.level < 3) {
+                            addOutput('<div class="error">ERROR: Requires Level 3 admin privileges</div>');
+                            return;
+                        }
+                        
+                        if (parts.length < 5) {
+                            addOutput('<div class="error">Format: ADD ACCESS [ID] [MIN_LEVEL] "[TITLE]" "[CONTENT]"</div>');
+                            addOutput('<div>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999..."</div>');
+                            return;
+                        }
+                        
+                        const articleId = parts[2];
+                        const minLevel = parseInt(parts[3]);
+                        const title = parts[4].replace(/"/g, '');
+                        const content = command.split('"')[2]?.trim() || '';
+                        
+                        if (!articleId || isNaN(minLevel) || !title || !content) {
+                            addOutput('<div class="error">ERROR: Invalid parameter format</div>');
+                            return;
+                        }
+                        
+                        // Create new document
+                        articles[articleId] = {
+                            title: title,
+                            minLevel: minLevel,
+                            content: content
+                        };
+                        
+                        addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
+                    } else if (cmd === 'list') {
+                        if (parts[1]?.toLowerCase() === 'users' && currentUser.level >= 3) {
+                            addOutput('<div class="admin-only">Authorized users:</div>');
+                            for (const [cred, user] of Object.entries(credentials)) {
+                                addOutput(`<div>${user.name} | ${user.role} | Level: ${user.level}</div>`);
+                            }
+                        } else if (parts[1]?.toLowerCase() === 'articles') {
+                            addOutput('<div>Available documents:</div>');
+                            for (const [id, article] of Object.entries(articles)) {
+                                addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel})</div>`);
+                            }
+                        } else {
+                            addOutput('<div class="error">ERROR: Unknown command</div>');
+                        }
+                    } else {
+                        addOutput('<div class="error">ERROR: Unknown command</div>');
+                        addOutput('<div>Type HELP for available commands</div>');
+                    }
                 }
                 
+                // Clear input field and refocus
                 inputField.value = '';
             }
             
+            // Event listener
             inputField.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     const command = inputField.value.trim();
