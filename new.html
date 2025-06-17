@@ -1,1 +1,106 @@
-<strong>sb</strong>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 样式保持不变 -->
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="header-title">SCIPNET 直接存储终端 - 安全协议 2317-Alpha</div>
+            <!-- 按钮代码 -->
+        </div>
+        
+        <div class="terminal-body">
+            <div class="terminal-output" id="output">
+                <!-- 移除了所有教程信息 -->
+                <div class="output-line">欢迎登陆SCIPNET直接存储终端</div>
+            </div>
+        </div>
+        
+        <div class="command-input">
+            <div class="prompt">> </div>
+            <input type="text" id="input-field" autocomplete="off" autofocus>
+            <div class="blinking-cursor"></div>
+        </div>
+        
+        <div class="footer">
+            SCP基金会 - 安全信息管理系统 | 当前时间: 2025-06-17 14:38:22 UTC | 安全等级: 伽马
+        </div>
+    </div>
+
+    <script>
+        // ... 数据存储部分保持不变 ...
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputField = document.getElementById('input-field');
+            const outputDiv = document.getElementById('output');
+            let currentUser = null;
+            
+            function addOutput(text, isCommand = false) {
+                // ... 保持不变 ...
+            }
+            
+            function showPermissionWarning(requiredLevel) {
+                // ... 保持不变 ...
+            }
+            
+            function handleCommand(command) {
+                addOutput(command, true);
+                
+                if (!currentUser) {
+                    if (command.toLowerCase() === 'help') {
+                        addOutput('<div>可用命令：<br>LOGIN - 开始认证过程<br>HELP - 显示帮助信息</div>');
+                    } else if (command.toLowerCase() === 'login') {
+                        addOutput('请输入用户凭证 (格式: 用户名 | 密码)');
+                    } else if (credentials[command]) {
+                        currentUser = credentials[command];
+                        addOutput(`<div class="user-info">许可接受。用户名：${currentUser.name}<br>职位：${currentUser.role}，${currentUser.site}<br>权限级别: ${currentUser.level}</div>`);
+                        addOutput('输入命令或HELP查看可用命令');
+                    } else {
+                        addOutput('<div class="error">错误：无效命令或凭证</div>');
+                        addOutput('<div>输入HELP查看可用命令</div>');
+                    }
+                } else {
+                    const parts = command.split(' ');
+                    const cmd = parts[0].toLowerCase();
+                    
+                    if (cmd === 'help') {
+                        if (parts[1] === 'access') {
+                            addOutput('<div><strong>ACCESS命令：</strong> 检索SCP文档<br>用法：ACCESS [SCP编号]<br>示例：ACCESS 2317<br><br>可用SCP：2317, 049, 173, 106<br><br>登录凭证格式：用户名 | 密码</div>');
+                        } else {
+                            let helpText = '<div>可用命令：<br>';
+                            helpText += 'ACCESS [SCP编号] - 检索SCP文档<br>';
+                            helpText += 'LOGOUT - 结束当前会话<br>';
+                            helpText += 'CLEAR - 清屏<br>';
+                            helpText += 'HELP - 显示帮助信息<br>';
+                            helpText += 'HELP ACCESS - 显示ACCESS命令详情<br>';
+                            
+                            if (currentUser.level >= 3) {
+                                helpText += '<span class="admin-only">管理员命令:<br>';
+                                helpText += 'ADD ACCESS - 添加新文档<br>';
+                                helpText += 'LIST USERS - 显示所有用户<br>';
+                                helpText += 'LIST ARTICLES - 显示所有文档</span>';
+                            }
+                            
+                            helpText += '</div>';
+                            addOutput(helpText);
+                        }
+                    } 
+                    // ... 其他命令处理保持不变 ...
+                }
+                
+                inputField.value = '';
+            }
+            
+            inputField.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const command = inputField.value.trim();
+                    if (command) {
+                        handleCommand(command);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
