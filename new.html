@@ -402,12 +402,9 @@
         <div class="terminal-body">
             <div class="terminal-output" id="output">
                 <div class="output-line">Welcome to SCIPNET Direct Storage Terminal. Please enter your login command.</div>
-                <div class="output-line">login</div>
-                <div class="output-line">Please enter user credentials (format: username | password)</div>
-                <div class="system-info">System Update: Data storage has been restructured. Articles and user data are now stored in separate files.</div>
-                <div class="system-info">GitHub synchronization is pre-configured. Use SYNC to synchronize data.</div>
+                <div class="system-info">Use [SYNC] to synchronize data.</div>
                 <div class="github-status status-connected">
-                    <i class="fas fa-circle connected"></i> Connected to GitHub: scp-foundation/secure-db (main)
+                    <i class="fas fa-circle connected"></i> welcome
                 </div>
             </div>
         </div>
@@ -751,7 +748,7 @@
                 if (!currentUser) {
                     // 登录处理
                     if (command.toLowerCase() === 'login') {
-                        addOutput('Enter user credentials (format: username | password)');
+                        addOutput('PLEASE ENTER USER AUTHENTICATION');
                     } else if (usersData[command]) {
                         currentUser = usersData[command];
                         addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
