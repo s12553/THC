@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCP Foundation - Terminal Access System</title>
     <style>
-        /* 保留原有CSS样式不变 */
+        /* 终端风格CSS - 保留原有样式 */
         * {
             margin: 0;
             padding: 0;
@@ -278,6 +278,114 @@
             white-space: pre;
             overflow-x: auto;
         }
+        
+        .github-status {
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        
+        .status-connected {
+            background-color: #002200;
+            color: #55ff55;
+            border-left: 3px solid #55ff55;
+        }
+        
+        .status-disconnected {
+            background-color: #220000;
+            color: #ff5555;
+            border-left: 3px solid #ff5555;
+        }
+        
+        .sync-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #002200;
+            color: #55ff55;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+        
+        .sync-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .sync-status {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 8px 0;
+            border-radius: 3px;
+            background-color: #001a1a;
+            border-left: 3px solid #008888;
+        }
+        
+        .sync-status .icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .sync-status.syncing {
+            border-color: #ffaa00;
+        }
+        
+        .sync-status.success {
+            border-color: #00cc00;
+        }
+        
+        .sync-status.error {
+            border-color: #cc0000;
+        }
+        
+        .sync-progress {
+            height: 5px;
+            background-color: #004444;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .sync-progress-bar {
+            height: 100%;
+            background-color: #00cc66;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .sync-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .sync-btn {
+            flex: 1;
+            padding: 8px;
+            background-color: #006666;
+            color: #00cccc;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .sync-btn:hover {
+            background-color: #008888;
+        }
+        
+        .sync-btn.full-sync {
+            background-color: #006633;
+        }
     </style>
 </head>
 <body>
@@ -296,7 +404,11 @@
                 <div class="output-line">Welcome to SCIPNET Direct Storage Terminal. Please enter your login command.</div>
                 <div class="output-line">login</div>
                 <div class="output-line">Please enter user credentials (format: username | password)</div>
-                <div class="system-info">System Update: Data storage has been restructured. Articles and user data are now stored in separate directories.</div>
+                <div class="system-info">System Update: Data storage has been restructured. Articles and user data are now stored in separate files.</div>
+                <div class="system-info">GitHub synchronization is pre-configured. Use SYNC to synchronize data.</div>
+                <div class="github-status status-connected">
+                    <i class="fas fa-circle connected"></i> Connected to GitHub: scp-foundation/secure-db (main)
+                </div>
             </div>
         </div>
         
@@ -307,178 +419,298 @@
         </div>
         
         <div class="footer">
-            SCP Foundation - Secure Information Management System | Current Time: 2025-06-17 14:38:22 UTC | Security Level: Gamma
+            SCP Foundation - Secure Information Management System | Current Time: <span id="current-time"></span> | Security Level: Gamma
         </div>
     </div>
 
+    <div class="sync-notification" id="syncNotification">
+        <span id="notificationText">Synchronization successful</span>
+    </div>
+
     <script>
-        // =====================================
-        // 数据存储结构改进方案
-        // =====================================
-        // 
-        // 1. 文章数据存储在/articles目录
-        // 2. 用户数据存储在/users目录
-        // 3. 添加新文章使用命令: add access [id] [minLevel] "[title]" "[content]"
-        // 
-        // 示例命令: 
-        //   add access 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe\nDescription: A friendly, gelatinous creature..."
-        //
-        // 数据结构示例:
-        // 
-        // /articles
-        //   ├── 2317.json
-        //   ├── 049.json
-        //   ├── 173.json
-        //   └── 106.json
-        // 
-        // /users
-        //   ├── jvance1@foundation.scp.json
-        //   ├── hmasterson4@foundation.scp.json
-        //   ├── jchoi98@foundation.scp.json
-        //   └── oadmin@foundation.scp.json
-        //
-        // =====================================
-
-        // 模拟文件系统
-        const fileSystem = {
-            articles: {},
-            users: {},
-            
-            // 初始化文件系统
-            init: function() {
-                // 创建articles目录
-                this.articles = {};
-                
-                // 创建users目录
-                this.users = {};
-                
-                // 添加默认文章
-                this.addArticle('2317', {
-                    title: 'SCP-2317',
-                    minLevel: 1,
-                    content: `**Item #**: SCP-2317\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber...`
-                });
-                
-                this.addArticle('049', {
-                    title: 'SCP-049',
-                    minLevel: 0,
-                    content: `**Item #**: SCP-049\n**Object Class**: Euclid\n**Special Containment Procedures**: SCP-049 is contained in a research cell at Site-19...`
-                });
-                
-                this.addArticle('173', {
-                    title: 'SCP-173',
-                    minLevel: 0,
-                    content: `**Item #**: SCP-173\n**Object Class**: Euclid\n**Special Containment Procedures**: The object is contained in a locked containment chamber...`
-                });
-                
-                this.addArticle('106', {
-                    title: 'SCP-106',
-                    minLevel: 2,
-                    content: `**Item #**: SCP-106\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-106 is contained at [DATA EXPUNGED] in a specialized containment facility...`
-                });
-                
-                // 添加默认用户
-                this.addUser('jvance1@foundation.scp | password9910', {
-                    name: 'Jonathan Vance',
-                    role: 'Research Assistant',
-                    site: 'Site 179',
-                    level: 0
-                });
-                
-                this.addUser('hmasterson4@foundation.scp | 12341lovethemarinecorps', {
-                    name: 'Hannibal Masterson',
-                    role: 'Junior Security Specialist',
-                    site: 'Site 179',
-                    level: 1
-                });
-                
-                this.addUser('jchoi98@foundation.scp | beethovens9th123', {
-                    name: 'Dr. Jackson Choi',
-                    role: 'Associate Researcher',
-                    site: 'SCP-2317',
-                    level: 2
-                });
-                
-                this.addUser('oadmin@foundation.scp | omega-level-secure', {
-                    name: 'O5-██',
-                    role: 'Overseer Council Member',
-                    site: 'Area-00',
-                    level: 3
-                });
-            },
-            
-            // 添加文章
-            addArticle: function(id, article) {
-                this.articles[id] = article;
-            },
-            
-            // 获取文章
-            getArticle: function(id) {
-                return this.articles[id];
-            },
-            
-            // 列出所有文章
-            listArticles: function() {
-                return Object.keys(this.articles);
-            },
-            
-            // 添加用户
-            addUser: function(credential, userData) {
-                this.users[credential] = userData;
-            },
-            
-            // 获取用户
-            getUser: function(credential) {
-                return this.users[credential];
-            },
-            
-            // 列出所有用户
-            listUsers: function() {
-                return Object.keys(this.users);
-            },
-            
-            // 检查文章是否存在
-            articleExists: function(id) {
-                return this.articles.hasOwnProperty(id);
-            },
-            
-            // 检查用户是否存在
-            userExists: function(credential) {
-                return this.users.hasOwnProperty(credential);
-            },
-            
-            // 显示文件系统结构
-            showStructure: function() {
-                let structure = "SCIPNET File System Structure:\n";
-                structure += "==============================\n\n";
-                
-                structure += "/articles\n";
-                for (const id in this.articles) {
-                    structure += `  ├── ${id}.json\n`;
-                }
-                
-                structure += "\n/users\n";
-                for (const user in this.users) {
-                    // 使用用户名而不是凭据显示
-                    const username = user.split(' | ')[0];
-                    structure += `  ├── ${username}.json\n`;
-                }
-                
-                return structure;
-            }
+        // 硬编码的GitHub配置
+        const githubConfig = {
+            token: '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', // 实际应用中应避免硬编码敏感信息
+            repo: 's12553/THC',
+            branch: 'main'
         };
-        
-        // 初始化文件系统
-        fileSystem.init();
 
-        // =====================
-        // Terminal Functionality
-        // =====================
-        
+        // 数据存储
+        let contentData = {
+            articles: {}
+        };
+
+        let usersData = {};
+
+        // 当前状态
+        let currentUser = null;
+        let contentSHA = null;
+        let usersSHA = null;
+
+        // 更新当前时间
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = 
+                `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.getElementById('syncNotification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notificationText.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 初始化数据
+        function initData() {
+            // 尝试从localStorage加载数据
+            const savedContent = localStorage.getItem('contentData');
+            if (savedContent) {
+                try {
+                    contentData = JSON.parse(savedContent);
+                } catch (e) {
+                    console.error("解析内容数据失败:", e);
+                    loadDefaultContent();
+                }
+            } else {
+                loadDefaultContent();
+            }
+            
+            const savedUsers = localStorage.getItem('usersData');
+            if (savedUsers) {
+                try {
+                    usersData = JSON.parse(savedUsers);
+                } catch (e) {
+                    console.error("解析用户数据失败:", e);
+                    loadDefaultUsers();
+                }
+            } else {
+                loadDefaultUsers();
+            }
+        }
+
+        // 加载默认内容
+        function loadDefaultContent() {
+            contentData = {
+                articles: {
+                    "2317": {
+                        title: "SCP-2317",
+                        minLevel: 1,
+                        content: "**Item #**: SCP-2317\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber..."
+                    },
+                    "049": {
+                        title: "SCP-049",
+                        minLevel: 0,
+                        content: "**Item #**: SCP-049\n**Object Class**: Euclid\n**Special Containment Procedures**: SCP-049 is contained in a research cell at Site-19..."
+                    },
+                    "173": {
+                        title: "SCP-173",
+                        minLevel: 0,
+                        content: "**Item #**: SCP-173\n**Object Class**: Euclid\n**Special Containment Procedures**: The object is contained in a locked containment chamber..."
+                    },
+                    "106": {
+                        title: "SCP-106",
+                        minLevel: 2,
+                        content: "**Item #**: SCP-106\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-106 is contained at [DATA EXPUNGED] in a specialized containment facility..."
+                    }
+                }
+            };
+            localStorage.setItem('contentData', JSON.stringify(contentData));
+        }
+
+        // 加载默认用户
+        function loadDefaultUsers() {
+            usersData = {
+                "jvance1@foundation.scp | password9910": {
+                    name: "Jonathan Vance",
+                    role: "Research Assistant",
+                    site: "Site 179",
+                    level: 0
+                },
+                "hmasterson4@foundation.scp | 12341lovethemarinecorps": {
+                    name: "Hannibal Masterson",
+                    role: "Junior Security Specialist",
+                    site: "Site 179",
+                    level: 1
+                },
+                "jchoi98@foundation.scp | beethovens9th123": {
+                    name: "Dr. Jackson Choi",
+                    role: "Associate Researcher",
+                    site: "SCP-2317",
+                    level: 2
+                },
+                "oadmin@foundation.scp | omega-level-secure": {
+                    name: "O5-██",
+                    role: "Overseer Council Member",
+                    site: "Area-00",
+                    level: 3
+                }
+            };
+            localStorage.setItem('usersData', JSON.stringify(usersData));
+        }
+
+        // 解决Base64中文乱码问题的辅助函数
+        function decodeBase64(str) {
+            const base64 = str.replace(/\s/g, '');
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return new TextDecoder('utf-8').decode(bytes);
+        }
+
+        function encodeBase64(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            let binary = '';
+            for (let i = 0; i < data.length; i++) {
+                binary += String.fromCharCode(data[i]);
+            }
+            return btoa(binary);
+        }
+
+        // 从GitHub获取数据
+        async function fetchFromGitHub(filePath) {
+            const [owner, repo] = githubConfig.repo.split('/');
+            if (!owner || !repo) {
+                throw new Error('Invalid repository name format');
+            }
+            
+            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${githubConfig.branch}`;
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return { content: null, sha: null };
+                }
+                throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            const decodedContent = data.content ? decodeBase64(data.content) : null;
+            return {
+                content: decodedContent ? JSON.parse(decodedContent) : null,
+                sha: data.sha
+            };
+        }
+
+        // 保存数据到GitHub
+        async function saveToGitHub(filePath, content, sha) {
+            const [owner, repo] = githubConfig.repo.split('/');
+            if (!owner || !repo) {
+                throw new Error('Invalid repository name format');
+            }
+            
+            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+            
+            const contentBase64 = encodeBase64(JSON.stringify(content, null, 2));
+            
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Update ${filePath}`,
+                    content: contentBase64,
+                    sha: sha,
+                    branch: githubConfig.branch
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to save: ${response.status} ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            return result.content.sha;
+        }
+
+        // 同步数据
+        async function syncData(type) {
+            try {
+                let filePath, localData, remoteData;
+                
+                if (type === 'articles') {
+                    filePath = 'content.json';
+                    localData = contentData;
+                } else if (type === 'users') {
+                    filePath = 'users.json';
+                    localData = usersData;
+                } else {
+                    showNotification('Invalid sync type');
+                    return;
+                }
+                
+                // 获取远程数据
+                const remote = await fetchFromGitHub(filePath);
+                remoteData = remote.content;
+                
+                if (type === 'articles') {
+                    contentSHA = remote.sha;
+                } else if (type === 'users') {
+                    usersSHA = remote.sha;
+                }
+                
+                if (remoteData) {
+                    // 合并数据 - 以远程数据为主
+                    Object.assign(localData, remoteData);
+                    
+                    // 保存到localStorage
+                    if (type === 'articles') {
+                        localStorage.setItem('contentData', JSON.stringify(contentData));
+                    } else {
+                        localStorage.setItem('usersData', JSON.stringify(usersData));
+                    }
+                    
+                    showNotification(`${type} data synced from GitHub`);
+                    return `Synchronized ${type} data from GitHub`;
+                } else {
+                    // 没有远程数据，上传本地数据
+                    const newSHA = await saveToGitHub(filePath, localData, null);
+                    
+                    if (type === 'articles') {
+                        contentSHA = newSHA;
+                    } else {
+                        usersSHA = newSHA;
+                    }
+                    
+                    showNotification(`${type} data uploaded to GitHub`);
+                    return `Uploaded ${type} data to GitHub`;
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                showNotification('Sync failed: ' + error.message);
+                return `Sync failed: ${error.message}`;
+            }
+        }
+
+        // 初始化终端
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化数据
+            initData();
+            
+            // 更新时间
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
             const inputField = document.getElementById('input-field');
             const outputDiv = document.getElementById('output');
-            let currentUser = null;
             
             // 添加命令输出
             function addOutput(text, isCommand = false) {
@@ -520,9 +752,73 @@
                     // 登录处理
                     if (command.toLowerCase() === 'login') {
                         addOutput('Enter user credentials (format: username | password)');
-                    } else if (fileSystem.userExists(command)) {
-                        currentUser = fileSystem.getUser(command);
+                    } else if (usersData[command]) {
+                        currentUser = usersData[command];
                         addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+                        
+                        // 登录后自动同步
+                        if (currentUser.level >= 1) {
+                            addOutput('<div class="system-info">Initiating automatic data synchronization...</div>');
+                            
+                            // 创建同步状态显示
+                            const syncStatus = document.createElement('div');
+                            syncStatus.className = 'sync-status syncing';
+                            syncStatus.innerHTML = `
+                                <div class="icon">↻</div>
+                                <div class="details">
+                                    <div>Syncing articles and users data...</div>
+                                    <div class="sync-progress">
+                                        <div class="sync-progress-bar" id="syncProgressBar"></div>
+                                    </div>
+                                </div>
+                            `;
+                            outputDiv.appendChild(syncStatus);
+                            outputDiv.scrollTop = outputDiv.scrollHeight;
+                            
+                            // 模拟进度条
+                            const progressBar = document.getElementById('syncProgressBar');
+                            let progress = 0;
+                            const interval = setInterval(() => {
+                                progress += 10;
+                                progressBar.style.width = `${progress}%`;
+                                if (progress >= 100) clearInterval(interval);
+                            }, 300);
+                            
+                            // 执行同步
+                            setTimeout(async () => {
+                                try {
+                                    const articlesResult = await syncData('articles');
+                                    const usersResult = await syncData('users');
+                                    
+                                    syncStatus.className = 'sync-status success';
+                                    syncStatus.innerHTML = `
+                                        <div class="icon">✓</div>
+                                        <div class="details">
+                                            <div>Synchronization complete!</div>
+                                            <div>${articlesResult}</div>
+                                            <div>${usersResult}</div>
+                                        </div>
+                                        <div class="sync-actions">
+                                            <div class="sync-btn" onclick="handleCommand('SYNC')">Sync Again</div>
+                                            <div class="sync-btn full-sync" onclick="handleCommand('SYNC FULL')">Full Sync</div>
+                                        </div>
+                                    `;
+                                } catch (e) {
+                                    syncStatus.className = 'sync-status error';
+                                    syncStatus.innerHTML = `
+                                        <div class="icon">✗</div>
+                                        <div class="details">
+                                            <div>Synchronization failed!</div>
+                                            <div>${e.message}</div>
+                                        </div>
+                                        <div class="sync-actions">
+                                            <div class="sync-btn" onclick="handleCommand('SYNC')">Retry</div>
+                                        </div>
+                                    `;
+                                }
+                            }, 3000);
+                        }
+                        
                         addOutput('Enter command');
                     } else {
                         addOutput('<div class="error">ERROR: Invalid credentials</div>');
@@ -533,30 +829,23 @@
                     const cmd = parts[0].toLowerCase();
                     
                     if (cmd === 'help') {
-                        if (parts[1] === 'access') {
-                            addOutput('<div><strong>ACCESS COMMAND:</strong> Retrieve SCP documentation<br>Usage: ACCESS [SCP-NUMBER]<br>Example: ACCESS 2317<br><br>Available SCPs: ' + fileSystem.listArticles().join(', ') + '</div>');
-                        } else if (parts[1] === 'add') {
-                            addOutput('<div><strong>ADD ACCESS COMMAND:</strong> Add new SCP documentation<br>Usage: ADD ACCESS [ID] [MIN_LEVEL] "[TITLE]" "[CONTENT]"<br>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe..."</div>');
-                        } else {
-                            let helpText = '<div>Available commands:<br>';
-                            helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
-                            helpText += 'LOGOUT - Terminate current session<br>';
-                            helpText += 'CLEAR - Clear terminal screen<br>';
-                            helpText += 'HELP - Show command information<br>';
-                            helpText += 'HELP ACCESS - Show ACCESS command details<br>';
-                            
-                            // 管理员命令
-                            if (currentUser.level >= 3) {
-                                helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
-                                helpText += 'ADD ACCESS - Add new SCP document<br>';
-                                helpText += 'LIST USERS - Display all authorized users<br>';
-                                helpText += 'LIST ARTICLES - Display all available SCP documents<br>';
-                                helpText += 'FS STRUCTURE - Display file system structure</span>';
-                            }
-                            
-                            helpText += '</div>';
-                            addOutput(helpText);
+                        let helpText = '<div>Available commands:<br>';
+                        helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
+                        helpText += 'LOGOUT - Terminate current session<br>';
+                        helpText += 'CLEAR - Clear terminal screen<br>';
+                        helpText += 'HELP - Show command information<br>';
+                        helpText += 'SYNC - Synchronize data with GitHub<br>';
+                        helpText += 'SYNC FULL - Force full data synchronization<br>';
+                        
+                        // 管理员命令
+                        if (currentUser.level >= 2) {
+                            helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
+                            helpText += 'ADD ACCESS - Add new SCP document<br>';
+                            helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
                         }
+                        
+                        helpText += '</div>';
+                        addOutput(helpText);
                     } else if (cmd === 'access') {
                         if (parts.length < 2) {
                             addOutput('<div class="error">ERROR: Missing SCP designation</div>');
@@ -564,17 +853,17 @@
                         } else {
                             const articleId = parts[1];
                             
-                            if (!fileSystem.articleExists(articleId)) {
+                            if (!contentData.articles[articleId]) {
                                 addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
                             } else {
-                                const article = fileSystem.getArticle(articleId);
+                                const article = contentData.articles[articleId];
                                 if (currentUser.level < article.minLevel) {
                                     showPermissionWarning(article.minLevel);
                                 } else {
                                     addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
                                     addOutput('<hr>');
                                     addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
-                                    addOutput(`<div class="scp-item">${article.content}</div>`);
+                                    addOutput(`<div class="scp-item">${article.content.replace(/\n/g, '<br>')}</div>`);
                                 }
                             }
                         }
@@ -586,8 +875,8 @@
                         outputDiv.innerHTML = '';
                     } else if (cmd === 'add' && parts[1]?.toLowerCase() === 'access') {
                         // 添加新文档命令
-                        if (currentUser.level < 3) {
-                            addOutput('<div class="error">ERROR: Requires Level 3 admin privileges</div>');
+                        if (currentUser.level < 2) {
+                            addOutput('<div class="error">ERROR: Requires Level 2+ privileges</div>');
                             return;
                         }
                         
@@ -620,39 +909,93 @@
                         const content = command.substring(contentStart + 1, contentEnd);
                         
                         // 创建新文档
-                        fileSystem.addArticle(articleId, {
+                        contentData.articles[articleId] = {
                             title: title,
                             minLevel: minLevel,
                             content: content
-                        });
+                        };
+                        
+                        // 保存到本地存储
+                        localStorage.setItem('contentData', JSON.stringify(contentData));
                         
                         addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
-                        addOutput('<div class="system-info">Article stored in /articles directory</div>');
-                    } else if (cmd === 'list') {
-                        if (parts[1]?.toLowerCase() === 'users' && currentUser.level >= 3) {
-                            addOutput('<div class="admin-only">Authorized users:</div>');
-                            for (const [cred, user] of Object.entries(fileSystem.users)) {
-                                const username = cred.split(' | ')[0];
-                                addOutput(`<div>${user.name} | ${user.role} | Level: ${user.level} | Username: ${username}</div>`);
-                            }
-                        } else if (parts[1]?.toLowerCase() === 'articles') {
-                            addOutput('<div>Available documents:</div>');
-                            for (const id of fileSystem.listArticles()) {
-                                const article = fileSystem.getArticle(id);
-                                addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel})</div>`);
-                            }
-                        } else {
-                            addOutput('<div class="error">ERROR: Unknown command</div>');
+                        addOutput('<div class="system-info">Article stored locally. Use SYNC to upload to GitHub.</div>');
+                    } else if (cmd === 'list' && parts[1]?.toLowerCase() === 'articles') {
+                        addOutput('<div>Available documents:</div>');
+                        for (const id in contentData.articles) {
+                            const article = contentData.articles[id];
+                            addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel})</div>`);
                         }
-                    } else if (cmd === 'fs' && parts[1]?.toLowerCase() === 'structure') {
-                        if (currentUser.level < 3) {
-                            addOutput('<div class="error">ERROR: Requires Level 3 admin privileges</div>');
-                            return;
-                        }
+                    } else if (cmd === 'sync') {
+                        // 创建同步状态显示
+                        const syncStatus = document.createElement('div');
+                        syncStatus.className = 'sync-status syncing';
+                        syncStatus.innerHTML = `
+                            <div class="icon">↻</div>
+                            <div class="details">
+                                <div>Syncing data with GitHub repository...</div>
+                                <div class="sync-progress">
+                                    <div class="sync-progress-bar" id="syncProgressBar"></div>
+                                </div>
+                            </div>
+                        `;
+                        outputDiv.appendChild(syncStatus);
+                        outputDiv.scrollTop = outputDiv.scrollHeight;
                         
-                        const structure = fileSystem.showStructure();
-                        addOutput('<div class="system-info">File System Structure:</div>');
-                        addOutput(`<div class="data-structure">${structure}</div>`);
+                        // 模拟进度条
+                        const progressBar = document.getElementById('syncProgressBar');
+                        let progress = 0;
+                        const interval = setInterval(() => {
+                            progress += 10;
+                            progressBar.style.width = `${progress}%`;
+                            if (progress >= 100) clearInterval(interval);
+                        }, 300);
+                        
+                        // 确定同步类型
+                        const syncType = command.toLowerCase().includes('full') ? 'full' : 'normal';
+                        
+                        // 执行同步
+                        setTimeout(async () => {
+                            try {
+                                let articlesResult, usersResult;
+                                
+                                if (syncType === 'full') {
+                                    // 强制全量同步
+                                    articlesResult = await syncData('articles');
+                                    usersResult = await syncData('users');
+                                } else {
+                                    // 正常同步
+                                    articlesResult = await syncData('articles');
+                                    usersResult = await syncData('users');
+                                }
+                                
+                                syncStatus.className = 'sync-status success';
+                                syncStatus.innerHTML = `
+                                    <div class="icon">✓</div>
+                                    <div class="details">
+                                        <div>Synchronization complete!</div>
+                                        <div>${articlesResult}</div>
+                                        <div>${usersResult}</div>
+                                    </div>
+                                    <div class="sync-actions">
+                                        <div class="sync-btn" onclick="handleCommand('SYNC')">Sync Again</div>
+                                        <div class="sync-btn full-sync" onclick="handleCommand('SYNC FULL')">Full Sync</div>
+                                    </div>
+                                `;
+                            } catch (e) {
+                                syncStatus.className = 'sync-status error';
+                                syncStatus.innerHTML = `
+                                    <div class="icon">✗</div>
+                                    <div class="details">
+                                        <div>Synchronization failed!</div>
+                                        <div>${e.message}</div>
+                                    </div>
+                                    <div class="sync-actions">
+                                        <div class="sync-btn" onclick="handleCommand('SYNC')">Retry</div>
+                                    </div>
+                                `;
+                            }
+                        }, 3000);
                     } else {
                         addOutput('<div class="error">ERROR: Unknown command</div>');
                         addOutput('<div>Type HELP for available commands</div>');
@@ -662,6 +1005,9 @@
                 // 清空输入框并重新聚焦
                 inputField.value = '';
             }
+            
+            // 全局暴露handleCommand函数
+            window.handleCommand = handleCommand;
             
             // 事件监听
             inputField.addEventListener('keydown', function(e) {
