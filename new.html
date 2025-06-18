@@ -702,90 +702,91 @@
 
         // 处理同步命令的公共函数
         function handleSyncCommand(command) {
-            const parts = command.split(' ');
-            const token = parts.length > 1 ? parts[1] : null;
-            
-            if (!token) {
-                addOutput('<div class="error">ERROR: Missing sync token</div>');
-                addOutput('<div>Usage: SYNC [token]</div>');
-                return;
-            }
-            
-            if (token !== SYNC_TOKEN) {
-                addOutput('<div class="error">ERROR: Invalid sync token</div>');
-                return;
-            }
-            
-            // 创建同步状态显示
-            const syncStatus = document.createElement('div');
-            syncStatus.className = 'sync-status syncing';
-            syncStatus.innerHTML = `
-                <div class="icon">↻</div>
-                <div class="details">
-                    <div>Syncing data with GitHub repository...</div>
-                    <div class="sync-progress">
-                        <div class="sync-progress-bar" id="syncProgressBar"></div>
-                    </div>
-                </div>
-            `;
-            outputDiv.appendChild(syncStatus);
-            outputDiv.scrollTop = outputDiv.scrollHeight;
-            
-            // 模拟进度条
-            const progressBar = document.getElementById('syncProgressBar');
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                progressBar.style.width = `${progress}%`;
-                if (progress >= 100) clearInterval(interval);
-            }, 300);
-            
-            // 确定同步类型
-            const syncType = command.toLowerCase().includes('full') ? 'full' : 'normal';
-            
-            // 执行同步
-            setTimeout(async () => {
-                try {
-                    let articlesResult, usersResult;
-                    
-                    if (syncType === 'full') {
-                        // 强制全量同步
-                        articlesResult = await syncData('articles');
-                        usersResult = await syncData('users');
-                    } else {
-                        // 正常同步
-                        articlesResult = await syncData('articles');
-                        usersResult = await syncData('users');
-                    }
-                    
-                    syncStatus.className = 'sync-status success';
-                    syncStatus.innerHTML = `
-                        <div class="icon">✓</div>
-                        <div class="details">
-                            <div>Synchronization complete!</div>
-                            <div>${articlesResult}</div>
-                            <div>${usersResult}</div>
-                        </div>
-                        <div class="sync-actions">
-                            <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Sync Again</div>
-                            <div class="sync-btn full-sync" onclick="handleCommand('SYNC ${SYNC_TOKEN} FULL')">Full Sync</div>
-                        </div>
-                    `;
-                } catch (e) {
-                    syncStatus.className = 'sync-status error';
-                    syncStatus.innerHTML = `
-                        <div class="icon">✗</div>
-                        <div class="details">
-                            <div>Synchronization failed!</div>
-                            <div>${e.message}</div>
-                        </div>
-                        <div class="sync-actions">
-                            <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Retry</div>
-                        </div>
-                    `;
-                }
-            }, 3000);
+        const outputDiv = document.getElementById('output'); // 添加这行获取outputDiv
+        const parts = command.split(' ');
+        const token = parts.length > 1 ? parts[1] : null;
+        
+        if (!token) {
+            addOutput('<div class="error">ERROR: Missing sync token</div>');
+            addOutput('<div>Usage: SYNC [token]</div>');
+            return;
         }
+        
+        if (token !== SYNC_TOKEN) {
+            addOutput('<div class="error">ERROR: Invalid sync token</div>');
+            return;
+        }
+        
+        // 创建同步状态显示
+        const syncStatus = document.createElement('div');
+        syncStatus.className = 'sync-status syncing';
+        syncStatus.innerHTML = `
+            <div class="icon">↻</div>
+            <div class="details">
+                <div>Syncing data with GitHub repository...</div>
+                <div class="sync-progress">
+                    <div class="sync-progress-bar" id="syncProgressBar"></div>
+                </div>
+            </div>
+        `;
+        outputDiv.appendChild(syncStatus);
+        outputDiv.scrollTop = outputDiv.scrollHeight;
+        
+        // 模拟进度条
+        const progressBar = document.getElementById('syncProgressBar');
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            progressBar.style.width = `${progress}%`;
+            if (progress >= 100) clearInterval(interval);
+        }, 300);
+        
+        // 确定同步类型
+        const syncType = command.toLowerCase().includes('full') ? 'full' : 'normal';
+        
+        // 执行同步
+        setTimeout(async () => {
+            try {
+                let articlesResult, usersResult;
+                
+                if (syncType === 'full') {
+                    // 强制全量同步
+                    articlesResult = await syncData('articles');
+                    usersResult = await syncData('users');
+                } else {
+                    // 正常同步
+                    articlesResult = await syncData('articles');
+                    usersResult = await syncData('users');
+                }
+                
+                syncStatus.className = 'sync-status success';
+                syncStatus.innerHTML = `
+                    <div class="icon">✓</div>
+                    <div class="details">
+                        <div>Synchronization complete!</div>
+                        <div>${articlesResult}</div>
+                        <div>${usersResult}</div>
+                    </div>
+                    <div class="sync-actions">
+                        <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Sync Again</div>
+                        <div class="sync-btn full-sync" onclick="handleCommand('SYNC ${SYNC_TOKEN} FULL')">Full Sync</div>
+                    </div>
+                `;
+            } catch (e) {
+                syncStatus.className = 'sync-status error';
+                syncStatus.innerHTML = `
+                    <div class="icon">✗</div>
+                    <div class="details">
+                        <div>Synchronization failed!</div>
+                        <div>${e.message}</div>
+                    </div>
+                    <div class="sync-actions">
+                        <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Retry</div>
+                    </div>
+                `;
+            }
+        }, 3000);
+    }
 
         // 初始化终端
         document.addEventListener('DOMContentLoaded', function() {
