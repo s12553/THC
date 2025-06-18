@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCP Foundation - Terminal Access System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 终端风格CSS - 保留原有样式 */
         * {
             margin: 0;
             padding: 0;
@@ -21,29 +21,8 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            background-image: 
-                radial-gradient(#2a2a2a 1px, transparent 1px),
-                linear-gradient(0deg, rgba(0,0,0,0.3) 1px, transparent 1px);
-            background-size: 20px 20px, 100% 2px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 100, 0, 0.05) 0px,
-                rgba(0, 100, 0, 0.05) 1px,
-                transparent 1px,
-                transparent 20px
-            );
-            pointer-events: none;
+            background-image: radial-gradient(#2a2a2a 1px, transparent 1px);
+            background-size: 20px 20px;
         }
         
         .terminal-container {
@@ -52,10 +31,8 @@
             background-color: #0f0f0f;
             border: 1px solid #444;
             border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0, 100, 0, 0.3), 0 0 30px rgba(0, 80, 0, 0.2) inset;
+            box-shadow: 0 0 20px rgba(0, 100, 0, 0.3);
             overflow: hidden;
-            position: relative;
-            z-index: 10;
         }
         
         .terminal-header {
@@ -71,8 +48,6 @@
             font-weight: bold;
             flex-grow: 1;
             text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-            letter-spacing: 1px;
-            font-size: 1.1rem;
         }
         
         .header-buttons {
@@ -84,17 +59,11 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s;
         }
         
         .btn-red { background-color: #ff5f56; }
         .btn-yellow { background-color: #ffbd2e; }
         .btn-green { background-color: #27c93f; }
-        
-        .btn-red:hover { background-color: #ff3b30; }
-        .btn-yellow:hover { background-color: #ffa700; }
-        .btn-green:hover { background-color: #1db130; }
         
         .terminal-body {
             padding: 20px;
@@ -105,10 +74,6 @@
             border: 1px solid #222;
             margin: 10px;
             border-radius: 3px;
-            background-image: 
-                linear-gradient(rgba(0, 80, 0, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 80, 0, 0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
         }
         
         .terminal-output {
@@ -143,7 +108,6 @@
             width: 100%;
             outline: none;
             font-family: 'Courier New', monospace;
-            letter-spacing: 0.5px;
         }
         
         .scp-header {
@@ -153,22 +117,18 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-            font-size: 1.3rem;
         }
         
         .scp-item {
             margin-bottom: 20px;
             padding: 10px;
             border-left: 2px solid #004400;
-            background: rgba(0, 30, 0, 0.1);
-            border-radius: 0 4px 4px 0;
         }
         
         .scp-title {
             color: #00cc00;
             margin-bottom: 5px;
             font-weight: bold;
-            font-size: 1.1rem;
         }
         
         .scp-content {
@@ -184,7 +144,6 @@
             border: 1px solid #ff0000;
             margin: 15px 0;
             text-align: center;
-            border-radius: 3px;
         }
         
         .restricted {
@@ -193,7 +152,6 @@
             padding: 5px;
             border-left: 3px solid #ffaa00;
             margin-top: 10px;
-            border-radius: 0 3px 3px 0;
         }
         
         .data-deleted {
@@ -201,7 +159,6 @@
             color: #ff5555;
             padding: 2px 5px;
             display: inline-block;
-            border-radius: 3px;
         }
         
         .permission-indicator {
@@ -246,9 +203,6 @@
             margin: 10px 0;
             padding-left: 5px;
             border-left: 2px solid #66aaff;
-            background: rgba(30, 50, 90, 0.1);
-            padding: 10px;
-            border-radius: 0 4px 4px 0;
         }
         
         .error {
@@ -256,7 +210,6 @@
             background-color: #220000;
             padding: 5px;
             margin: 5px 0;
-            border-radius: 3px;
         }
         
         .success {
@@ -264,7 +217,6 @@
             background-color: #002200;
             padding: 5px;
             margin: 5px 0;
-            border-radius: 3px;
         }
         
         .admin-only {
@@ -272,7 +224,6 @@
             border-left: 2px solid #ff66aa;
             padding: 5px;
             margin: 10px 0;
-            border-radius: 0 3px 3px 0;
         }
         
         .permission-warning {
@@ -298,14 +249,12 @@
             );
             border: 1px solid #ff0000;
             margin: 20px 0;
-            border-radius: 3px;
         }
         
         .access-denied h2 {
             color: #ff5555;
             font-size: 24px;
             margin-bottom: 10px;
-            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
         }
         
         .access-denied p {
@@ -318,7 +267,6 @@
             padding: 8px;
             margin: 10px 0;
             border-left: 3px solid #66aaff;
-            border-radius: 0 4px 4px 0;
         }
         
         .data-structure {
@@ -329,7 +277,6 @@
             font-family: monospace;
             white-space: pre;
             overflow-x: auto;
-            border-radius: 3px;
         }
         
         .github-status {
@@ -337,8 +284,6 @@
             margin: 10px 0;
             border-radius: 3px;
             font-size: 0.9rem;
-            display: flex;
-            align-items: center;
         }
         
         .status-connected {
@@ -366,8 +311,6 @@
             opacity: 0;
             transform: translateY(-20px);
             transition: all 0.3s ease;
-            border: 1px solid #00aa00;
-            font-family: 'Courier New', monospace;
         }
         
         .sync-notification.show {
@@ -388,23 +331,18 @@
         .sync-status .icon {
             margin-right: 10px;
             font-size: 18px;
-            min-width: 20px;
-            text-align: center;
         }
         
         .sync-status.syncing {
             border-color: #ffaa00;
-            background-color: #1a1a00;
         }
         
         .sync-status.success {
             border-color: #00cc00;
-            background-color: #001a00;
         }
         
         .sync-status.error {
             border-color: #cc0000;
-            background-color: #1a0000;
         }
         
         .sync-progress {
@@ -439,7 +377,6 @@
             font-family: 'Courier New', monospace;
             font-weight: bold;
             text-align: center;
-            transition: background-color 0.2s;
         }
         
         .sync-btn:hover {
@@ -449,90 +386,6 @@
         .sync-btn.full-sync {
             background-color: #006633;
         }
-        
-        .sync-btn.full-sync:hover {
-            background-color: #008844;
-        }
-        
-        .terminal-banner {
-            text-align: center;
-            padding: 10px;
-            background: linear-gradient(to right, #002200, #001100);
-            border-bottom: 1px solid #004400;
-            font-size: 0.9rem;
-            color: #55ff55;
-            letter-spacing: 1px;
-        }
-        
-        .token-hint {
-            color: #ffaa00;
-            font-size: 0.9rem;
-            margin-top: 5px;
-            background: rgba(90, 70, 0, 0.1);
-            padding: 3px;
-            border-radius: 3px;
-        }
-        
-        .sync-token-input {
-            background-color: #002200;
-            border: 1px solid #005500;
-            color: #00cc00;
-            padding: 5px 10px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            width: 200px;
-            margin: 5px 0;
-        }
-        
-        .login-form {
-            margin: 15px 0;
-            padding: 10px;
-            border: 1px solid #333;
-            border-radius: 3px;
-            background-color: #080808;
-        }
-        
-        .login-form input {
-            background-color: #002200;
-            border: 1px solid #005500;
-            color: #00cc00;
-            padding: 8px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        
-        .login-btn {
-            background-color: #004400;
-            color: #00cc00;
-            border: 1px solid #006600;
-            padding: 8px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            width: 100%;
-            transition: background-color 0.2s;
-        }
-        
-        .login-btn:hover {
-            background-color: #006600;
-        }
-        
-        .command-hint {
-            color: #777;
-            font-size: 0.9rem;
-            margin-top: 5px;
-        }
-        
-        .scp-logo {
-            text-align: center;
-            margin: 15px 0;
-            font-size: 2rem;
-            color: #00cc00;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-            letter-spacing: 3px;
-        }
     </style>
 </head>
 <body>
@@ -540,32 +393,19 @@
         <div class="terminal-header">
             <div class="header-title">SCIPNET Direct Storage Terminal - Security Protocol 2317-Alpha</div>
             <div class="header-buttons">
-                <div class="header-btn btn-red" title="Close" onclick="handleCommand('LOGOUT')"></div>
-                <div class="header-btn btn-yellow" title="Minimize" onclick="addOutput('Terminal minimized to system tray')"></div>
-                <div class="header-btn btn-green" title="Maximize" onclick="document.querySelector('.terminal-container').classList.toggle('maximized')"></div>
+                <div class="header-btn btn-red"></div>
+                <div class="header-btn btn-yellow"></div>
+                <div class="header-btn btn-green"></div>
             </div>
-        </div>
-        
-        <div class="terminal-banner">
-            SECURE CONTAINMENT PROTOCOL TERMINAL v3.14 | SYNCHRONIZATION TOKEN REQUIRED
         </div>
         
         <div class="terminal-body">
             <div class="terminal-output" id="output">
-                <div class="scp-logo">S C P</div>
-                <div class="output-line">Welcome to SCIPNET Direct Storage Terminal.</div>
-                <div class="system-info">Use SYNC [TOKEN] to synchronize data with central repository.</div>
+                <div class="output-line">Welcome to SCIPNET Direct Storage Terminal. </div>
+                <div class="system-info">Use SYNC to synchronize data.</div>
                 <div class="github-status status-connected">
-                    <i class="fas fa-circle connected" style="color: #55ff55"></i> Connected to scp-central-repository
+                    <i class="fas fa-circle connected"></i> Connected to scp-foundation
                 </div>
-                <div class="output-line">Enter credentials to access SCP documentation:</div>
-                <div class="login-form">
-                    <input type="text" id="username" placeholder="Username" autocomplete="off">
-                    <input type="password" id="password" placeholder="Password" autocomplete="off">
-                    <button class="login-btn" onclick="login()">LOGIN</button>
-                </div>
-                <div class="output-line">For synchronization, use command: <span style="color: #00cc00">SYNC [TOKEN]</span></div>
-                <div class="token-hint">Synchronization token required - contact Level 3+ personnel for token</div>
             </div>
         </div>
         
@@ -576,7 +416,7 @@
         </div>
         
         <div class="footer">
-            SCP Foundation - Secure Information Management System | Current Time: <span id="current-time">2025-06-18 14:30:45</span> | Security Level: Gamma
+            SCP Foundation - Secure Information Management System | Current Time: <span id="current-time"></span> | Security Level: Gamma
         </div>
     </div>
 
@@ -585,15 +425,15 @@
     </div>
 
     <script>
-        // 同步令牌
-        const SYNC_TOKEN = '2317-omega-sync';
-        
         // 硬编码的GitHub配置
         const githubConfig = {
-            token: 'cmd', 
+            token: 'cmd', // 实际应用中应避免硬编码敏感信息
             repo: 's12553/THC',
             branch: 'main'
         };
+
+        // 添加SYNC_TOKEN常量
+        const SYNC_TOKEN = 'secure-sync-token';
 
         // 数据存储
         let contentData = {
@@ -629,34 +469,63 @@
 
         // 初始化数据
         function initData() {
-            // 加载默认内容
+            // 尝试从localStorage加载数据
+            const savedContent = localStorage.getItem('contentData');
+            if (savedContent) {
+                try {
+                    contentData = JSON.parse(savedContent);
+                } catch (e) {
+                    console.error("解析内容数据失败:", e);
+                    loadDefaultContent();
+                }
+            } else {
+                loadDefaultContent();
+            }
+            
+            const savedUsers = localStorage.getItem('usersData');
+            if (savedUsers) {
+                try {
+                    usersData = JSON.parse(savedUsers);
+                } catch (e) {
+                    console.error("解析用户数据失败:", e);
+                    loadDefaultUsers();
+                }
+            } else {
+                loadDefaultUsers();
+            }
+        }
+
+        // 加载默认内容
+        function loadDefaultContent() {
             contentData = {
                 articles: {
                     "2317": {
                         title: "SCP-2317",
                         minLevel: 1,
-                        content: "**Item #**: SCP-2317\n**Object Class**: Keter\n\n**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber constructed from reinforced concrete and lead-lined steel. The chamber must be monitored by no fewer than three (3) armed guards at all times. Under no circumstances is the chamber to be opened.\n\n**Description**: SCP-2317 is a massive, humanoid entity approximately 100 meters in height. The entity is currently in a dormant state and is contained within a specialized chamber at Site-██. Historical records indicate that SCP-2317 has been contained by the Foundation since █████."
+                        content: "**Item #**: SCP-2317\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber..."
                     },
                     "049": {
                         title: "SCP-049",
                         minLevel: 0,
-                        content: "**Item #**: SCP-049\n**Object Class**: Euclid\n\n**Special Containment Procedures**: SCP-049 is contained in a standard Safe-class humanoid containment cell at Site-19. No physical interaction is permitted without prior written consent from at least two (2) Level 4 personnel.\n\n**Description**: SCP-049 is a humanoid entity, roughly 1.9 meters tall, which bears the appearance of a medieval plague doctor. SCP-049 is capable of speech in a variety of languages, though tends to use English or medieval French. SCP-049 will become agitated when in the presence of deceased subjects, referring to them as 'the pestilence'."
+                        content: "**Item #**: SCP-049\n**Object Class**: Euclid\n**Special Containment Procedures**: SCP-049 is contained in a research cell at Site-19..."
                     },
                     "173": {
                         title: "SCP-173",
                         minLevel: 0,
-                        content: "**Item #**: SCP-173\n**Object Class**: Euclid\n\n**Special Containment Procedures**: SCP-173 is contained in a locked containment chamber at Site-19. When personnel must enter SCP-173's containment chamber, no fewer than three (3) may enter at any time and the door is to be relocked behind them. At all times, two persons must maintain direct eye contact with SCP-173 until all personnel have vacated and relocked the cell.\n\n**Description**: SCP-173 is a sculpture constructed from concrete and rebar with traces of Krylon brand spray paint. SCP-173 is animate and extremely hostile. The object cannot move while within a direct line of sight."
+                        content: "**Item #**: SCP-173\n**Object Class**: Euclid\n**Special Containment Procedures**: The object is contained in a locked containment chamber..."
                     },
                     "106": {
                         title: "SCP-106",
                         minLevel: 2,
-                        content: "**Item #**: SCP-106\n**Object Class**: Keter\n\n**Special Containment Procedures**: SCP-106 is contained in a sealed container, which is to be surrounded by no less than three (3) concentric spheres of lead-lined concrete. Personnel are to maintain a 45m minimum distance from the container unless directly authorized by Level 4 personnel.\n\n**Description**: SCP-106 appears to be an elderly humanoid, with a general appearance of advanced decomposition. SCP-106 is capable of passing through solid matter, leaving behind a corrosive residue. SCP-106 will attack and attempt to incapacitate prey by dragging them into its pocket dimension."
+                        content: "**Item #**: SCP-106\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-106 is contained at [DATA EXPUNGED] in a specialized containment facility..."
                     }
                 }
             };
             localStorage.setItem('contentData', JSON.stringify(contentData));
-            
-            // 加载默认用户
+        }
+
+        // 加载默认用户
+        function loadDefaultUsers() {
             usersData = {
                 "jvance1@foundation.scp | password9910": {
                     name: "Jonathan Vance",
@@ -707,261 +576,153 @@
             return btoa(binary);
         }
 
+        // 从GitHub获取数据
+        async function fetchFromGitHub(filePath) {
+            const [owner, repo] = githubConfig.repo.split('/');
+            if (!owner || !repo) {
+                throw new Error('Invalid repository name format');
+            }
+            
+            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${githubConfig.branch}`;
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return { content: null, sha: null };
+                }
+                throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            const decodedContent = data.content ? decodeBase64(data.content) : null;
+            return {
+                content: decodedContent ? JSON.parse(decodedContent) : null,
+                sha: data.sha
+            };
+        }
+
+        // 保存数据到GitHub
+        async function saveToGitHub(filePath, content, sha) {
+            const [owner, repo] = githubConfig.repo.split('/');
+            if (!owner || !repo) {
+                throw new Error('Invalid repository name format');
+            }
+            
+            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+            
+            const contentBase64 = encodeBase64(JSON.stringify(content, null, 2));
+            
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Update ${filePath}`,
+                    content: contentBase64,
+                    sha: sha,
+                    branch: githubConfig.branch
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to save: ${response.status} ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            return result.content.sha;
+        }
+
         // 同步数据
         async function syncData(type) {
             try {
-                // 模拟同步操作
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                let filePath, localData, remoteData;
                 
                 if (type === 'articles') {
-                    return `Synchronized ${Object.keys(contentData.articles).length} articles`;
+                    filePath = 'content.json';
+                    localData = contentData;
                 } else if (type === 'users') {
-                    return `Synchronized ${Object.keys(usersData).length} user profiles`;
+                    filePath = 'users.json';
+                    localData = usersData;
+                } else {
+                    showNotification('Invalid sync type');
+                    return;
+                }
+                
+                // 获取远程数据
+                const remote = await fetchFromGitHub(filePath);
+                remoteData = remote.content;
+                
+                if (type === 'articles') {
+                    contentSHA = remote.sha;
+                } else if (type === 'users') {
+                    usersSHA = remote.sha;
+                }
+                
+                if (remoteData) {
+                    // 合并数据 - 以远程数据为主
+                    Object.assign(localData, remoteData);
+                    
+                    // 保存到localStorage
+                    if (type === 'articles') {
+                        localStorage.setItem('contentData', JSON.stringify(contentData));
+                    } else {
+                        localStorage.setItem('usersData', JSON.stringify(usersData));
+                    }
+                    
+                    showNotification(`${type} data synced from GitHub`);
+                    return `Synchronized ${type} data from GitHub`;
+                } else {
+                    // 没有远程数据，上传本地数据
+                    const newSHA = await saveToGitHub(filePath, localData, null);
+                    
+                    if (type === 'articles') {
+                        contentSHA = newSHA;
+                    } else {
+                        usersSHA = newSHA;
+                    }
+                    
+                    showNotification(`${type} data uploaded to GitHub`);
+                    return `Uploaded ${type} data to GitHub`;
                 }
             } catch (error) {
                 console.error('Sync error:', error);
+                showNotification('Sync failed: ' + error.message);
                 return `Sync failed: ${error.message}`;
             }
         }
 
-        // 添加命令输出
-        function addOutput(text, isCommand = false) {
-            const outputDiv = document.getElementById('output');
-            const line = document.createElement('div');
-            line.className = 'output-line';
-            
-            if (isCommand) {
-                line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
-            } else {
-                line.innerHTML = text;
-            }
-            
-            outputDiv.appendChild(line);
-            outputDiv.scrollTop = outputDiv.scrollHeight;
-        }
-
-        // 显示权限警告
-        function showPermissionWarning(requiredLevel) {
-            const outputDiv = document.getElementById('output');
-            const warning = document.createElement('div');
-            warning.className = 'permission-warning';
-            warning.innerHTML = `
-                <div class="access-denied">
-                    <h2>ACCESS DENIED</h2>
-                    <p>Warning: Insufficient clearance level</p>
-                    <p>Required clearance: Level ${requiredLevel}+</p>
-                    <p>Your clearance: Level ${currentUser.level}</p>
-                </div>
-                <p>Contact site administrator or O5 Council for access upgrade</p>
-            `;
-            outputDiv.appendChild(warning);
-            outputDiv.scrollTop = outputDiv.scrollHeight;
-        }
-        
-        // 登录函数
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const credentials = `${username} | ${password}`;
-            
-            if (usersData[credentials]) {
-                currentUser = usersData[credentials];
-                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
-                addOutput('Enter command (type HELP for available commands)');
-                
-                // 清除登录表单
-                document.querySelector('.login-form').remove();
-            } else {
-                addOutput('<div class="error">ERROR: Invalid credentials</div>');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-            }
-        }
-
-        // 处理用户输入
-        function handleCommand(command) {
-            addOutput(command, true);
-            
-            if (!currentUser) {
-                // 未登录用户命令
-                if (command.toLowerCase() === 'help') {
-                    addOutput('<div>Available commands:<br>');
-                    addOutput('LOGIN - Authenticate to system<br>');
-                    addOutput('SYNC [TOKEN] - Synchronize data with central repository<br>');
-                    addOutput('HELP - Show command information</div>');
-                } else if (command.toLowerCase().startsWith('sync')) {
-                    handleSyncCommand(command);
-                } else {
-                    addOutput('<div class="error">ERROR: Authentication required for that command</div>');
-                }
-            } else {
-                // 已登录用户命令
-                const parts = command.split(' ');
-                const cmd = parts[0].toLowerCase();
-                
-                if (cmd === 'help') {
-                    let helpText = '<div>Available commands:<br>';
-                    helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
-                    helpText += 'LOGOUT - Terminate current session<br>';
-                    helpText += 'CLEAR - Clear terminal screen<br>';
-                    helpText += 'HELP - Show command information<br>';
-                    helpText += 'SYNC [TOKEN] - Synchronize data with GitHub<br>';
-                    
-                    // 管理员命令
-                    if (currentUser.level >= 2) {
-                        helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
-                        helpText += 'ADD ACCESS - Add new SCP document<br>';
-                        helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
-                    }
-                    
-                    helpText += '</div>';
-                    addOutput(helpText);
-                } else if (cmd === 'access') {
-                    if (parts.length < 2) {
-                        addOutput('<div class="error">ERROR: Missing SCP designation</div>');
-                        addOutput('<div>Usage: ACCESS [SCP-NUMBER]</div>');
-                    } else {
-                        const articleId = parts[1];
-                        
-                        if (!contentData.articles[articleId]) {
-                            addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
-                        } else {
-                            const article = contentData.articles[articleId];
-                            if (currentUser.level < article.minLevel) {
-                                showPermissionWarning(article.minLevel);
-                            } else {
-                                addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
-                                addOutput('<hr>');
-                                addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
-                                addOutput(`<div class="scp-item">${article.content.replace(/\n/g, '<br>')}</div>`);
-                            }
-                        }
-                    }
-                } else if (cmd === 'logout') {
-                    addOutput(`<div>User ${currentUser.name} logged out</div>`);
-                    currentUser = null;
-                    
-                    // 重新显示登录表单
-                    const outputDiv = document.getElementById('output');
-                    const loginForm = document.createElement('div');
-                    loginForm.className = 'login-form';
-                    loginForm.innerHTML = `
-                        <input type="text" id="username" placeholder="Username" autocomplete="off">
-                        <input type="password" id="password" placeholder="Password" autocomplete="off">
-                        <button class="login-btn" onclick="login()">LOGIN</button>
-                    `;
-                    outputDiv.appendChild(loginForm);
-                } else if (cmd === 'clear') {
-                    document.getElementById('output').innerHTML = '';
-                    if (!currentUser) {
-                        // 重新添加初始内容
-                        const outputDiv = document.getElementById('output');
-                        outputDiv.innerHTML = `
-                            <div class="scp-logo">S C P</div>
-                            <div class="output-line">Welcome to SCIPNET Direct Storage Terminal.</div>
-                            <div class="system-info">Use SYNC [TOKEN] to synchronize data with central repository.</div>
-                            <div class="github-status status-connected">
-                                <i class="fas fa-circle connected" style="color: #55ff55"></i> Connected to scp-central-repository
-                            </div>
-                            <div class="output-line">Enter credentials to access SCP documentation:</div>
-                            <div class="login-form">
-                                <input type="text" id="username" placeholder="Username" autocomplete="off">
-                                <input type="password" id="password" placeholder="Password" autocomplete="off">
-                                <button class="login-btn" onclick="login()">LOGIN</button>
-                            </div>
-                            <div class="output-line">For synchronization, use command: <span style="color: #00cc00">SYNC [TOKEN]</span></div>
-                            <div class="token-hint">Synchronization token required - contact Level 3+ personnel for token</div>
-                        `;
-                    }
-                } else if (cmd === 'add' && parts[1]?.toLowerCase() === 'access') {
-                    if (currentUser.level < 2) {
-                        addOutput('<div class="error">ERROR: Requires Level 2+ privileges</div>');
-                        return;
-                    }
-                    
-                    if (parts.length < 5) {
-                        addOutput('<div class="error">Format: ADD ACCESS [ID] [MIN_LEVEL] "[TITLE]" "[CONTENT]"</div>');
-                        addOutput('<div>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe..."</div>');
-                        return;
-                    }
-                    
-                    const articleId = parts[2];
-                    const minLevel = parseInt(parts[3]);
-                    
-                    if (isNaN(minLevel)) {
-                        addOutput('<div class="error">ERROR: Invalid minimum level</div>');
-                        return;
-                    }
-                    
-                    // 提取标题和内容
-                    const titleStart = command.indexOf('"');
-                    const titleEnd = command.indexOf('"', titleStart + 1);
-                    const contentStart = command.indexOf('"', titleEnd + 1);
-                    const contentEnd = command.indexOf('"', contentStart + 1);
-                    
-                    if (titleStart === -1 || titleEnd === -1 || contentStart === -1 || contentEnd === -1) {
-                        addOutput('<div class="error">ERROR: Invalid format. Make sure title and content are in double quotes</div>');
-                        return;
-                    }
-                    
-                    const title = command.substring(titleStart + 1, titleEnd);
-                    const content = command.substring(contentStart + 1, contentEnd);
-                    
-                    // 创建新文档
-                    contentData.articles[articleId] = {
-                        title: title,
-                        minLevel: minLevel,
-                        content: content
-                    };
-                    
-                    // 保存到本地存储
-                    localStorage.setItem('contentData', JSON.stringify(contentData));
-                    
-                    addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
-                    addOutput('<div class="system-info">Article stored locally. Use SYNC to upload to central repository.</div>');
-                } else if (cmd === 'list' && parts[1]?.toLowerCase() === 'articles') {
-                    addOutput('<div>Available documents:</div>');
-                    for (const id in contentData.articles) {
-                        const article = contentData.articles[id];
-                        addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel})</div>`);
-                    }
-                } else if (cmd === 'sync') {
-                    handleSyncCommand(command);
-                } else {
-                    addOutput('<div class="error">ERROR: Unknown command</div>');
-                    addOutput('<div>Type HELP for available commands</div>');
-                }
-            }
-            
-            // 清空输入框并重新聚焦
-            document.getElementById('input-field').value = '';
-        }
-
-        // 处理同步命令
+        // 处理同步命令的公共函数
         function handleSyncCommand(command) {
             const parts = command.split(' ');
             const token = parts.length > 1 ? parts[1] : null;
             
             if (!token) {
                 addOutput('<div class="error">ERROR: Missing sync token</div>');
-                addOutput('<div>Usage: SYNC [TOKEN]</div>');
+                addOutput('<div>Usage: SYNC [token]</div>');
                 return;
             }
             
             if (token !== SYNC_TOKEN) {
                 addOutput('<div class="error">ERROR: Invalid sync token</div>');
-                addOutput('<div class="token-hint">Valid tokens can be obtained from Level 3+ personnel</div>');
                 return;
             }
             
             // 创建同步状态显示
-            const outputDiv = document.getElementById('output');
             const syncStatus = document.createElement('div');
             syncStatus.className = 'sync-status syncing';
             syncStatus.innerHTML = `
                 <div class="icon">↻</div>
                 <div class="details">
-                    <div>Syncing data with central repository...</div>
+                    <div>Syncing data with GitHub repository...</div>
                     <div class="sync-progress">
                         <div class="sync-progress-bar" id="syncProgressBar"></div>
                     </div>
@@ -979,11 +740,23 @@
                 if (progress >= 100) clearInterval(interval);
             }, 300);
             
+            // 确定同步类型
+            const syncType = command.toLowerCase().includes('full') ? 'full' : 'normal';
+            
             // 执行同步
             setTimeout(async () => {
                 try {
-                    let articlesResult = await syncData('articles');
-                    let usersResult = await syncData('users');
+                    let articlesResult, usersResult;
+                    
+                    if (syncType === 'full') {
+                        // 强制全量同步
+                        articlesResult = await syncData('articles');
+                        usersResult = await syncData('users');
+                    } else {
+                        // 正常同步
+                        articlesResult = await syncData('articles');
+                        usersResult = await syncData('users');
+                    }
                     
                     syncStatus.className = 'sync-status success';
                     syncStatus.innerHTML = `
@@ -995,10 +768,9 @@
                         </div>
                         <div class="sync-actions">
                             <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Sync Again</div>
+                            <div class="sync-btn full-sync" onclick="handleCommand('SYNC ${SYNC_TOKEN} FULL')">Full Sync</div>
                         </div>
                     `;
-                    
-                    showNotification('Data synchronization successful');
                 } catch (e) {
                     syncStatus.className = 'sync-status error';
                     syncStatus.innerHTML = `
@@ -1011,7 +783,6 @@
                             <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Retry</div>
                         </div>
                     `;
-                    showNotification('Synchronization failed: ' + e.message);
                 }
             }, 3000);
         }
@@ -1026,6 +797,243 @@
             setInterval(updateCurrentTime, 1000);
             
             const inputField = document.getElementById('input-field');
+            const outputDiv = document.getElementById('output');
+            
+            // 添加命令输出
+            function addOutput(text, isCommand = false) {
+                const line = document.createElement('div');
+                line.className = 'output-line';
+                
+                if (isCommand) {
+                    line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
+                } else {
+                    line.innerHTML = text;
+                }
+                
+                outputDiv.appendChild(line);
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            }
+            
+            // 显示权限警告
+            function showPermissionWarning(requiredLevel) {
+                const warning = document.createElement('div');
+                warning.className = 'permission-warning';
+                warning.innerHTML = `
+                    <div class="access-denied">
+                        <h2>ACCESS DENIED</h2>
+                        <p>Warning: Insufficient clearance level</p>
+                        <p>Required clearance: Level ${requiredLevel}+</p>
+                        <p>Your clearance: Level ${currentUser.level}</p>
+                    </div>
+                    <p>Contact site administrator or O5 Council for access upgrade</p>
+                `;
+                outputDiv.appendChild(warning);
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            }
+            
+            // 处理用户输入
+            function handleCommand(command) {
+                addOutput(command, true);
+                
+                if (!currentUser) {
+                    // 登录处理
+                    if (command.toLowerCase() === 'login') {
+                        addOutput('Enter user credentials (format: username | password)');
+                    } 
+                    // 添加对sync命令的支持（不需要登录）
+                    else if (command.toLowerCase().startsWith('sync')) {
+                        handleSyncCommand(command);
+                    }
+                    else if (usersData[command]) {
+                        currentUser = usersData[command];
+                        addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+                        
+                        // 登录后自动同步
+                        if (currentUser.level >= 1) {
+                            addOutput('<div class="system-info">Initiating automatic data synchronization...</div>');
+                            
+                            // 创建同步状态显示
+                            const syncStatus = document.createElement('div');
+                            syncStatus.className = 'sync-status syncing';
+                            syncStatus.innerHTML = `
+                                <div class="icon">↻</div>
+                                <div class="details">
+                                    <div>Syncing articles and users data...</div>
+                                    <div class="sync-progress">
+                                        <div class="sync-progress-bar" id="syncProgressBar"></div>
+                                    </div>
+                                </div>
+                            `;
+                            outputDiv.appendChild(syncStatus);
+                            outputDiv.scrollTop = outputDiv.scrollHeight;
+                            
+                            // 模拟进度条
+                            const progressBar = document.getElementById('syncProgressBar');
+                            let progress = 0;
+                            const interval = setInterval(() => {
+                                progress += 10;
+                                progressBar.style.width = `${progress}%`;
+                                if (progress >= 100) clearInterval(interval);
+                            }, 300);
+                            
+                            // 执行同步
+                            setTimeout(async () => {
+                                try {
+                                    const articlesResult = await syncData('articles');
+                                    const usersResult = await syncData('users');
+                                    
+                                    syncStatus.className = 'sync-status success';
+                                    syncStatus.innerHTML = `
+                                        <div class="icon">✓</div>
+                                        <div class="details">
+                                            <div>Synchronization complete!</div>
+                                            <div>${articlesResult}</div>
+                                            <div>${usersResult}</div>
+                                        </div>
+                                        <div class="sync-actions">
+                                            <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Sync Again</div>
+                                            <div class="sync-btn full-sync" onclick="handleCommand('SYNC ${SYNC_TOKEN} FULL')">Full Sync</div>
+                                        </div>
+                                    `;
+                                } catch (e) {
+                                    syncStatus.className = 'sync-status error';
+                                    syncStatus.innerHTML = `
+                                        <div class="icon">✗</div>
+                                        <div class="details">
+                                            <div>Synchronization failed!</div>
+                                            <div>${e.message}</div>
+                                        </div>
+                                        <div class="sync-actions">
+                                            <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Retry</div>
+                                        </div>
+                                    `;
+                                }
+                            }, 3000);
+                        }
+                        
+                        addOutput('Enter command');
+                    } else {
+                        addOutput('<div class="error">ERROR: Invalid credentials or command</div>');
+                        addOutput('<div>Available commands: LOGIN or SYNC [token]</div>');
+                    }
+                } else {
+                    // 命令处理
+                    const parts = command.split(' ');
+                    const cmd = parts[0].toLowerCase();
+                    
+                    if (cmd === 'help') {
+                        let helpText = '<div>Available commands:<br>';
+                        helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
+                        helpText += 'LOGOUT - Terminate current session<br>';
+                        helpText += 'CLEAR - Clear terminal screen<br>';
+                        helpText += 'HELP - Show command information<br>';
+                        helpText += 'SYNC [token] - Synchronize data with GitHub<br>';
+                        helpText += 'SYNC [token] FULL - Force full data synchronization<br>';
+                        
+                        // 管理员命令
+                        if (currentUser.level >= 2) {
+                            helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
+                            helpText += 'ADD ACCESS - Add new SCP document<br>';
+                            helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
+                        }
+                        
+                        helpText += '</div>';
+                        addOutput(helpText);
+                    } else if (cmd === 'access') {
+                        if (parts.length < 2) {
+                            addOutput('<div class="error">ERROR: Missing SCP designation</div>');
+                            addOutput('<div>Usage: ACCESS [SCP-NUMBER]</div>');
+                        } else {
+                            const articleId = parts[1];
+                            
+                            if (!contentData.articles[articleId]) {
+                                addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
+                            } else {
+                                const article = contentData.articles[articleId];
+                                if (currentUser.level < article.minLevel) {
+                                    showPermissionWarning(article.minLevel);
+                                } else {
+                                    addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
+                                    addOutput('<hr>');
+                                    addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
+                                    addOutput(`<div class="scp-item">${article.content.replace(/\n/g, '<br>')}</div>`);
+                                }
+                            }
+                        }
+                    } else if (cmd === 'logout') {
+                        addOutput(`<div>User ${currentUser.name} logged out</div>`);
+                        currentUser = null;
+                        addOutput('Enter user credentials');
+                    } else if (cmd === 'clear') {
+                        outputDiv.innerHTML = '';
+                    } else if (cmd === 'add' && parts[1]?.toLowerCase() === 'access') {
+                        // 添加新文档命令
+                        if (currentUser.level < 2) {
+                            addOutput('<div class="error">ERROR: Requires Level 2+ privileges</div>');
+                            return;
+                        }
+                        
+                        if (parts.length < 5) {
+                            addOutput('<div class="error">Format: ADD ACCESS [ID] [MIN_LEVEL] "[TITLE]" "[CONTENT]"</div>');
+                            addOutput('<div>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe..."</div>');
+                            return;
+                        }
+                        
+                        const articleId = parts[2];
+                        const minLevel = parseInt(parts[3]);
+                        
+                        if (isNaN(minLevel)) {
+                            addOutput('<div class="error">ERROR: Invalid minimum level</div>');
+                            return;
+                        }
+                        
+                        // 提取标题和内容
+                        const titleStart = command.indexOf('"');
+                        const titleEnd = command.indexOf('"', titleStart + 1);
+                        const contentStart = command.indexOf('"', titleEnd + 1);
+                        const contentEnd = command.indexOf('"', contentStart + 1);
+                        
+                        if (titleStart === -1 || titleEnd === -1 || contentStart === -1 || contentEnd === -1) {
+                            addOutput('<div class="error">ERROR: Invalid format. Make sure title and content are in double quotes</div>');
+                            return;
+                        }
+                        
+                        const title = command.substring(titleStart + 1, titleEnd);
+                        const content = command.substring(contentStart + 1, contentEnd);
+                        
+                        // 创建新文档
+                        contentData.articles[articleId] = {
+                            title: title,
+                            minLevel: minLevel,
+                            content: content
+                        };
+                        
+                        // 保存到本地存储
+                        localStorage.setItem('contentData', JSON.stringify(contentData));
+                        
+                        addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
+                        addOutput('<div class="system-info">Article stored locally. Use SYNC to upload to GitHub.</div>');
+                    } else if (cmd === 'list' && parts[1]?.toLowerCase() === 'articles') {
+                        addOutput('<div>Available documents:</div>');
+                        for (const id in contentData.articles) {
+                            const article = contentData.articles[id];
+                            addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel})</div>`);
+                        }
+                    } else if (cmd === 'sync') {
+                        handleSyncCommand(command);
+                    } else {
+                        addOutput('<div class="error">ERROR: Unknown command</div>');
+                        addOutput('<div>Type HELP for available commands</div>');
+                    }
+                }
+                
+                // 清空输入框并重新聚焦
+                inputField.value = '';
+            }
+            
+            // 全局暴露handleCommand函数
+            window.handleCommand = handleCommand;
+            window.handleSyncCommand = handleSyncCommand;
             
             // 事件监听
             inputField.addEventListener('keydown', function(e) {
@@ -1036,10 +1044,6 @@
                     }
                 }
             });
-            
-            // 全局暴露函数
-            window.handleCommand = handleCommand;
-            window.login = login;
         });
     </script>
 </body>
