@@ -1,60 +1,930 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <!-- 头部内容保持不变 -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCP Foundation - Terminal Access System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: 
+                radial-gradient(#2a2a2a 1px, transparent 1px),
+                linear-gradient(0deg, rgba(0,0,0,0.3) 1px, transparent 1px);
+            background-size: 20px 20px, 100% 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 100, 0, 0.05) 0px,
+                rgba(0, 100, 0, 0.05) 1px,
+                transparent 1px,
+                transparent 20px
+            );
+            pointer-events: none;
+        }
+        
+        .terminal-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: #0f0f0f;
+            border: 1px solid #444;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0, 100, 0, 0.3), 0 0 30px rgba(0, 80, 0, 0.2) inset;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .terminal-header {
+            background: linear-gradient(to right, #003300, #002200);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #004400;
+        }
+        
+        .header-title {
+            color: #00cc00;
+            font-weight: bold;
+            flex-grow: 1;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .header-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-red { background-color: #ff5f56; }
+        .btn-yellow { background-color: #ffbd2e; }
+        .btn-green { background-color: #27c93f; }
+        
+        .btn-red:hover { background-color: #ff3b30; }
+        .btn-yellow:hover { background-color: #ffa700; }
+        .btn-green:hover { background-color: #1db130; }
+        
+        .terminal-body {
+            padding: 20px;
+            min-height: 500px;
+            background-color: #0c0c0c;
+            overflow-y: auto;
+            max-height: 70vh;
+            border: 1px solid #222;
+            margin: 10px;
+            border-radius: 3px;
+            background-image: 
+                linear-gradient(rgba(0, 80, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 80, 0, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .terminal-output {
+            white-space: pre-wrap;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+        
+        .output-line {
+            margin-bottom: 8px;
+        }
+        
+        .command-input {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #080808;
+            border-top: 1px solid #222;
+        }
+        
+        .prompt {
+            color: #00cc00;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        #input-field {
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 15px;
+            width: 100%;
+            outline: none;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+        }
+        
+        .scp-header {
+            color: #00cc00;
+            text-align: center;
+            margin: 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+            font-size: 1.3rem;
+        }
+        
+        .scp-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-left: 2px solid #004400;
+            background: rgba(0, 30, 0, 0.1);
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .scp-title {
+            color: #00cc00;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .scp-content {
+            color: #cccccc;
+            line-height: 1.6;
+        }
+        
+        .warning {
+            color: #ff5555;
+            font-weight: bold;
+            background-color: #220000;
+            padding: 10px;
+            border: 1px solid #ff0000;
+            margin: 15px 0;
+            text-align: center;
+            border-radius: 3px;
+        }
+        
+        .restricted {
+            color: #ffaa00;
+            background-color: #1f1f00;
+            padding: 5px;
+            border-left: 3px solid #ffaa00;
+            margin-top: 10px;
+            border-radius: 0 3px 3px 0;
+        }
+        
+        .data-deleted {
+            background-color: #220000;
+            color: #ff5555;
+            padding: 2px 5px;
+            display: inline-block;
+            border-radius: 3px;
+        }
+        
+        .permission-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .level-0 { background-color: #003366; color: #66aaff; }
+        .level-1 { background-color: #336600; color: #99ff66; }
+        .level-2 { background-color: #663300; color: #ffcc66; }
+        .level-3 { background-color: #660033; color: #ff66aa; }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #555;
+            font-size: 12px;
+            border-top: 1px solid #222;
+            background-color: #080808;
+        }
+        
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background-color: #00cc00;
+            margin-left: 5px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .user-info {
+            color: #66aaff;
+            margin: 10px 0;
+            padding-left: 5px;
+            border-left: 2px solid #66aaff;
+            background: rgba(30, 50, 90, 0.1);
+            padding: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .error {
+            color: #ff5555;
+            background-color: #220000;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+        
+        .success {
+            color: #55ff55;
+            background-color: #002200;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+        
+        .admin-only {
+            color: #ff66aa;
+            border-left: 2px solid #ff66aa;
+            padding: 5px;
+            margin: 10px 0;
+            border-radius: 0 3px 3px 0;
+        }
+        
+        .permission-warning {
+            background: linear-gradient(45deg, #220000, #440000);
+            border: 1px solid #ff5555;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+        
+        .access-denied {
+            text-align: center;
+            padding: 20px;
+            background: repeating-linear-gradient(
+                45deg,
+                #1a0000,
+                #1a0000 10px,
+                #220000 10px,
+                #220000 20px
+            );
+            border: 1px solid #ff0000;
+            margin: 20px 0;
+            border-radius: 3px;
+        }
+        
+        .access-denied h2 {
+            color: #ff5555;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+        
+        .access-denied p {
+            color: #ff9999;
+        }
+        
+        .system-info {
+            color: #66aaff;
+            background-color: #001a33;
+            padding: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #66aaff;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .data-structure {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+            border-radius: 3px;
+        }
+        
+        .github-status {
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-connected {
+            background-color: #002200;
+            color: #55ff55;
+            border-left: 3px solid #55ff55;
+        }
+        
+        .status-disconnected {
+            background-color: #220000;
+            color: #ff5555;
+            border-left: 3px solid #ff5555;
+        }
+        
+        .sync-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #002200;
+            color: #55ff55;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            border: 1px solid #00aa00;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .sync-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .sync-status {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 8px 0;
+            border-radius: 3px;
+            background-color: #001a1a;
+            border-left: 3px solid #008888;
+        }
+        
+        .sync-status .icon {
+            margin-right: 10px;
+            font-size: 18px;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .sync-status.syncing {
+            border-color: #ffaa00;
+            background-color: #1a1a00;
+        }
+        
+        .sync-status.success {
+            border-color: #00cc00;
+            background-color: #001a00;
+        }
+        
+        .sync-status.error {
+            border-color: #cc0000;
+            background-color: #1a0000;
+        }
+        
+        .sync-progress {
+            height: 5px;
+            background-color: #004444;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .sync-progress-bar {
+            height: 100%;
+            background-color: #00cc66;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .sync-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .sync-btn {
+            flex: 1;
+            padding: 8px;
+            background-color: #006666;
+            color: #00cccc;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        
+        .sync-btn:hover {
+            background-color: #008888;
+        }
+        
+        .sync-btn.full-sync {
+            background-color: #006633;
+        }
+        
+        .sync-btn.full-sync:hover {
+            background-color: #008844;
+        }
+        
+        .terminal-banner {
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(to right, #002200, #001100);
+            border-bottom: 1px solid #004400;
+            font-size: 0.9rem;
+            color: #55ff55;
+            letter-spacing: 1px;
+        }
+        
+        .token-hint {
+            color: #ffaa00;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            background: rgba(90, 70, 0, 0.1);
+            padding: 3px;
+            border-radius: 3px;
+        }
+        
+        .sync-token-input {
+            background-color: #002200;
+            border: 1px solid #005500;
+            color: #00cc00;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            width: 200px;
+            margin: 5px 0;
+        }
+        
+        .login-form {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 3px;
+            background-color: #080808;
+        }
+        
+        .login-form input {
+            background-color: #002200;
+            border: 1px solid #005500;
+            color: #00cc00;
+            padding: 8px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .login-btn {
+            background-color: #004400;
+            color: #00cc00;
+            border: 1px solid #006600;
+            padding: 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+        
+        .login-btn:hover {
+            background-color: #006600;
+        }
+        
+        .command-hint {
+            color: #777;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .scp-logo {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 2rem;
+            color: #00cc00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            letter-spacing: 3px;
+        }
+    </style>
 </head>
 <body>
-    <!-- 主体内容保持不变 -->
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="header-title">SCIPNET Direct Storage Terminal - Security Protocol 2317-Alpha</div>
+            <div class="header-buttons">
+                <div class="header-btn btn-red" title="Close" onclick="handleCommand('LOGOUT')"></div>
+                <div class="header-btn btn-yellow" title="Minimize" onclick="addOutput('Terminal minimized to system tray')"></div>
+                <div class="header-btn btn-green" title="Maximize" onclick="document.querySelector('.terminal-container').classList.toggle('maximized')"></div>
+            </div>
+        </div>
+        
+        <div class="terminal-banner">
+            SECURE CONTAINMENT PROTOCOL TERMINAL v3.14 | SYNCHRONIZATION TOKEN REQUIRED
+        </div>
+        
+        <div class="terminal-body">
+            <div class="terminal-output" id="output">
+                <div class="scp-logo">S C P</div>
+                <div class="output-line">Welcome to SCIPNET Direct Storage Terminal.</div>
+                <div class="system-info">Use SYNC [TOKEN] to synchronize data with central repository.</div>
+                <div class="github-status status-connected">
+                    <i class="fas fa-circle connected" style="color: #55ff55"></i> Connected to scp-central-repository
+                </div>
+                <div class="output-line">Enter credentials to access SCP documentation:</div>
+                <div class="login-form">
+                    <input type="text" id="username" placeholder="Username" autocomplete="off">
+                    <input type="password" id="password" placeholder="Password" autocomplete="off">
+                    <button class="login-btn" onclick="login()">LOGIN</button>
+                </div>
+                <div class="output-line">For synchronization, use command: <span style="color: #00cc00">SYNC [TOKEN]</span></div>
+                <div class="token-hint">Synchronization token required - contact Level 3+ personnel for token</div>
+            </div>
+        </div>
+        
+        <div class="command-input">
+            <div class="prompt">> </div>
+            <input type="text" id="input-field" autocomplete="off" autofocus>
+            <div class="blinking-cursor"></div>
+        </div>
+        
+        <div class="footer">
+            SCP Foundation - Secure Information Management System | Current Time: <span id="current-time">2025-06-18 14:30:45</span> | Security Level: Gamma
+        </div>
+    </div>
+
+    <div class="sync-notification" id="syncNotification">
+        <span id="notificationText">Synchronization successful</span>
+    </div>
 
     <script>
+        // 同步令牌
+        const SYNC_TOKEN = '2317-omega-sync';
+        
         // 硬编码的GitHub配置
         const githubConfig = {
-            token: 'cmd', // 实际应用中应避免硬编码敏感信息
+            token: 'cmd', 
             repo: 's12553/THC',
             branch: 'main'
         };
 
-        // 添加SYNC_TOKEN常量
-        const SYNC_TOKEN = 'secure-sync-token';
+        // 数据存储
+        let contentData = {
+            articles: {}
+        };
 
-        // ... 其他代码保持不变 ...
+        let usersData = {};
+
+        // 当前状态
+        let currentUser = null;
+        let contentSHA = null;
+        let usersSHA = null;
+
+        // 更新当前时间
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = 
+                `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.getElementById('syncNotification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notificationText.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 初始化数据
+        function initData() {
+            // 加载默认内容
+            contentData = {
+                articles: {
+                    "2317": {
+                        title: "SCP-2317",
+                        minLevel: 1,
+                        content: "**Item #**: SCP-2317\n**Object Class**: Keter\n\n**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber constructed from reinforced concrete and lead-lined steel. The chamber must be monitored by no fewer than three (3) armed guards at all times. Under no circumstances is the chamber to be opened.\n\n**Description**: SCP-2317 is a massive, humanoid entity approximately 100 meters in height. The entity is currently in a dormant state and is contained within a specialized chamber at Site-██. Historical records indicate that SCP-2317 has been contained by the Foundation since █████."
+                    },
+                    "049": {
+                        title: "SCP-049",
+                        minLevel: 0,
+                        content: "**Item #**: SCP-049\n**Object Class**: Euclid\n\n**Special Containment Procedures**: SCP-049 is contained in a standard Safe-class humanoid containment cell at Site-19. No physical interaction is permitted without prior written consent from at least two (2) Level 4 personnel.\n\n**Description**: SCP-049 is a humanoid entity, roughly 1.9 meters tall, which bears the appearance of a medieval plague doctor. SCP-049 is capable of speech in a variety of languages, though tends to use English or medieval French. SCP-049 will become agitated when in the presence of deceased subjects, referring to them as 'the pestilence'."
+                    },
+                    "173": {
+                        title: "SCP-173",
+                        minLevel: 0,
+                        content: "**Item #**: SCP-173\n**Object Class**: Euclid\n\n**Special Containment Procedures**: SCP-173 is contained in a locked containment chamber at Site-19. When personnel must enter SCP-173's containment chamber, no fewer than three (3) may enter at any time and the door is to be relocked behind them. At all times, two persons must maintain direct eye contact with SCP-173 until all personnel have vacated and relocked the cell.\n\n**Description**: SCP-173 is a sculpture constructed from concrete and rebar with traces of Krylon brand spray paint. SCP-173 is animate and extremely hostile. The object cannot move while within a direct line of sight."
+                    },
+                    "106": {
+                        title: "SCP-106",
+                        minLevel: 2,
+                        content: "**Item #**: SCP-106\n**Object Class**: Keter\n\n**Special Containment Procedures**: SCP-106 is contained in a sealed container, which is to be surrounded by no less than three (3) concentric spheres of lead-lined concrete. Personnel are to maintain a 45m minimum distance from the container unless directly authorized by Level 4 personnel.\n\n**Description**: SCP-106 appears to be an elderly humanoid, with a general appearance of advanced decomposition. SCP-106 is capable of passing through solid matter, leaving behind a corrosive residue. SCP-106 will attack and attempt to incapacitate prey by dragging them into its pocket dimension."
+                    }
+                }
+            };
+            localStorage.setItem('contentData', JSON.stringify(contentData));
+            
+            // 加载默认用户
+            usersData = {
+                "jvance1@foundation.scp | password9910": {
+                    name: "Jonathan Vance",
+                    role: "Research Assistant",
+                    site: "Site 179",
+                    level: 0
+                },
+                "hmasterson4@foundation.scp | 12341lovethemarinecorps": {
+                    name: "Hannibal Masterson",
+                    role: "Junior Security Specialist",
+                    site: "Site 179",
+                    level: 1
+                },
+                "jchoi98@foundation.scp | beethovens9th123": {
+                    name: "Dr. Jackson Choi",
+                    role: "Associate Researcher",
+                    site: "SCP-2317",
+                    level: 2
+                },
+                "oadmin@foundation.scp | omega-level-secure": {
+                    name: "O5-██",
+                    role: "Overseer Council Member",
+                    site: "Area-00",
+                    level: 3
+                }
+            };
+            localStorage.setItem('usersData', JSON.stringify(usersData));
+        }
+
+        // 解决Base64中文乱码问题的辅助函数
+        function decodeBase64(str) {
+            const base64 = str.replace(/\s/g, '');
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return new TextDecoder('utf-8').decode(bytes);
+        }
+
+        function encodeBase64(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            let binary = '';
+            for (let i = 0; i < data.length; i++) {
+                binary += String.fromCharCode(data[i]);
+            }
+            return btoa(binary);
+        }
+
+        // 同步数据
+        async function syncData(type) {
+            try {
+                // 模拟同步操作
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                if (type === 'articles') {
+                    return `Synchronized ${Object.keys(contentData.articles).length} articles`;
+                } else if (type === 'users') {
+                    return `Synchronized ${Object.keys(usersData).length} user profiles`;
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                return `Sync failed: ${error.message}`;
+            }
+        }
+
+        // 添加命令输出
+        function addOutput(text, isCommand = false) {
+            const outputDiv = document.getElementById('output');
+            const line = document.createElement('div');
+            line.className = 'output-line';
+            
+            if (isCommand) {
+                line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
+            } else {
+                line.innerHTML = text;
+            }
+            
+            outputDiv.appendChild(line);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+
+        // 显示权限警告
+        function showPermissionWarning(requiredLevel) {
+            const outputDiv = document.getElementById('output');
+            const warning = document.createElement('div');
+            warning.className = 'permission-warning';
+            warning.innerHTML = `
+                <div class="access-denied">
+                    <h2>ACCESS DENIED</h2>
+                    <p>Warning: Insufficient clearance level</p>
+                    <p>Required clearance: Level ${requiredLevel}+</p>
+                    <p>Your clearance: Level ${currentUser.level}</p>
+                </div>
+                <p>Contact site administrator or O5 Council for access upgrade</p>
+            `;
+            outputDiv.appendChild(warning);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        // 登录函数
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const credentials = `${username} | ${password}`;
+            
+            if (usersData[credentials]) {
+                currentUser = usersData[credentials];
+                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+                addOutput('Enter command (type HELP for available commands)');
+                
+                // 清除登录表单
+                document.querySelector('.login-form').remove();
+            } else {
+                addOutput('<div class="error">ERROR: Invalid credentials</div>');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
 
         // 处理用户输入
         function handleCommand(command) {
             addOutput(command, true);
             
             if (!currentUser) {
-                // 登录处理
-                if (command.toLowerCase() === 'login') {
-                    addOutput('Enter user credentials (format: username | password)');
-                } 
-                // 添加对sync命令的支持（不需要登录）
-                else if (command.toLowerCase().startsWith('sync')) {
+                // 未登录用户命令
+                if (command.toLowerCase() === 'help') {
+                    addOutput('<div>Available commands:<br>');
+                    addOutput('LOGIN - Authenticate to system<br>');
+                    addOutput('SYNC [TOKEN] - Synchronize data with central repository<br>');
+                    addOutput('HELP - Show command information</div>');
+                } else if (command.toLowerCase().startsWith('sync')) {
                     handleSyncCommand(command);
-                }
-                else if (usersData[command]) {
-                    // ... 登录处理代码保持不变 ...
                 } else {
-                    addOutput('<div class="error">ERROR: Invalid credentials or command</div>');
-                    addOutput('<div>Available commands: LOGIN or SYNC [token]</div>');
+                    addOutput('<div class="error">ERROR: Authentication required for that command</div>');
                 }
             } else {
-                // 命令处理
+                // 已登录用户命令
                 const parts = command.split(' ');
                 const cmd = parts[0].toLowerCase();
                 
                 if (cmd === 'help') {
-                    // ... help命令处理保持不变 ...
+                    let helpText = '<div>Available commands:<br>';
+                    helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
+                    helpText += 'LOGOUT - Terminate current session<br>';
+                    helpText += 'CLEAR - Clear terminal screen<br>';
+                    helpText += 'HELP - Show command information<br>';
+                    helpText += 'SYNC [TOKEN] - Synchronize data with GitHub<br>';
+                    
+                    // 管理员命令
+                    if (currentUser.level >= 2) {
+                        helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
+                        helpText += 'ADD ACCESS - Add new SCP document<br>';
+                        helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
+                    }
+                    
+                    helpText += '</div>';
+                    addOutput(helpText);
                 } else if (cmd === 'access') {
-                    // ... access命令处理保持不变 ...
+                    if (parts.length < 2) {
+                        addOutput('<div class="error">ERROR: Missing SCP designation</div>');
+                        addOutput('<div>Usage: ACCESS [SCP-NUMBER]</div>');
+                    } else {
+                        const articleId = parts[1];
+                        
+                        if (!contentData.articles[articleId]) {
+                            addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
+                        } else {
+                            const article = contentData.articles[articleId];
+                            if (currentUser.level < article.minLevel) {
+                                showPermissionWarning(article.minLevel);
+                            } else {
+                                addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
+                                addOutput('<hr>');
+                                addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
+                                addOutput(`<div class="scp-item">${article.content.replace(/\n/g, '<br>')}</div>`);
+                            }
+                        }
+                    }
                 } else if (cmd === 'logout') {
-                    // ... logout命令处理保持不变 ...
+                    addOutput(`<div>User ${currentUser.name} logged out</div>`);
+                    currentUser = null;
+                    
+                    // 重新显示登录表单
+                    const outputDiv = document.getElementById('output');
+                    const loginForm = document.createElement('div');
+                    loginForm.className = 'login-form';
+                    loginForm.innerHTML = `
+                        <input type="text" id="username" placeholder="Username" autocomplete="off">
+                        <input type="password" id="password" placeholder="Password" autocomplete="off">
+                        <button class="login-btn" onclick="login()">LOGIN</button>
+                    `;
+                    outputDiv.appendChild(loginForm);
                 } else if (cmd === 'clear') {
-                    // ... clear命令处理保持不变 ...
+                    document.getElementById('output').innerHTML = '';
+                    if (!currentUser) {
+                        // 重新添加初始内容
+                        const outputDiv = document.getElementById('output');
+                        outputDiv.innerHTML = `
+                            <div class="scp-logo">S C P</div>
+                            <div class="output-line">Welcome to SCIPNET Direct Storage Terminal.</div>
+                            <div class="system-info">Use SYNC [TOKEN] to synchronize data with central repository.</div>
+                            <div class="github-status status-connected">
+                                <i class="fas fa-circle connected" style="color: #55ff55"></i> Connected to scp-central-repository
+                            </div>
+                            <div class="output-line">Enter credentials to access SCP documentation:</div>
+                            <div class="login-form">
+                                <input type="text" id="username" placeholder="Username" autocomplete="off">
+                                <input type="password" id="password" placeholder="Password" autocomplete="off">
+                                <button class="login-btn" onclick="login()">LOGIN</button>
+                            </div>
+                            <div class="output-line">For synchronization, use command: <span style="color: #00cc00">SYNC [TOKEN]</span></div>
+                            <div class="token-hint">Synchronization token required - contact Level 3+ personnel for token</div>
+                        `;
+                    }
                 } else if (cmd === 'add' && parts[1]?.toLowerCase() === 'access') {
-                    // ... add access命令处理保持不变 ...
+                    if (currentUser.level < 2) {
+                        addOutput('<div class="error">ERROR: Requires Level 2+ privileges</div>');
+                        return;
+                    }
+                    
+                    if (parts.length < 5) {
+                        addOutput('<div class="error">Format: ADD ACCESS [ID] [MIN_LEVEL] "[TITLE]" "[CONTENT]"</div>');
+                        addOutput('<div>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe..."</div>');
+                        return;
+                    }
+                    
+                    const articleId = parts[2];
+                    const minLevel = parseInt(parts[3]);
+                    
+                    if (isNaN(minLevel)) {
+                        addOutput('<div class="error">ERROR: Invalid minimum level</div>');
+                        return;
+                    }
+                    
+                    // 提取标题和内容
+                    const titleStart = command.indexOf('"');
+                    const titleEnd = command.indexOf('"', titleStart + 1);
+                    const contentStart = command.indexOf('"', titleEnd + 1);
+                    const contentEnd = command.indexOf('"', contentStart + 1);
+                    
+                    if (titleStart === -1 || titleEnd === -1 || contentStart === -1 || contentEnd === -1) {
+                        addOutput('<div class="error">ERROR: Invalid format. Make sure title and content are in double quotes</div>');
+                        return;
+                    }
+                    
+                    const title = command.substring(titleStart + 1, titleEnd);
+                    const content = command.substring(contentStart + 1, contentEnd);
+                    
+                    // 创建新文档
+                    contentData.articles[articleId] = {
+                        title: title,
+                        minLevel: minLevel,
+                        content: content
+                    };
+                    
+                    // 保存到本地存储
+                    localStorage.setItem('contentData', JSON.stringify(contentData));
+                    
+                    addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
+                    addOutput('<div class="system-info">Article stored locally. Use SYNC to upload to central repository.</div>');
                 } else if (cmd === 'list' && parts[1]?.toLowerCase() === 'articles') {
-                    // ... list articles命令处理保持不变 ...
+                    addOutput('<div>Available documents:</div>');
+                    for (const id in contentData.articles) {
+                        const article = contentData.articles[id];
+                        addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel})</div>`);
+                    }
                 } else if (cmd === 'sync') {
                     handleSyncCommand(command);
                 } else {
@@ -64,32 +934,34 @@
             }
             
             // 清空输入框并重新聚焦
-            inputField.value = '';
+            document.getElementById('input-field').value = '';
         }
 
-        // 处理同步命令的公共函数
+        // 处理同步命令
         function handleSyncCommand(command) {
             const parts = command.split(' ');
             const token = parts.length > 1 ? parts[1] : null;
             
             if (!token) {
                 addOutput('<div class="error">ERROR: Missing sync token</div>');
-                addOutput('<div>Usage: SYNC [token]</div>');
+                addOutput('<div>Usage: SYNC [TOKEN]</div>');
                 return;
             }
             
             if (token !== SYNC_TOKEN) {
                 addOutput('<div class="error">ERROR: Invalid sync token</div>');
+                addOutput('<div class="token-hint">Valid tokens can be obtained from Level 3+ personnel</div>');
                 return;
             }
             
             // 创建同步状态显示
+            const outputDiv = document.getElementById('output');
             const syncStatus = document.createElement('div');
             syncStatus.className = 'sync-status syncing';
             syncStatus.innerHTML = `
                 <div class="icon">↻</div>
                 <div class="details">
-                    <div>Syncing data with GitHub repository...</div>
+                    <div>Syncing data with central repository...</div>
                     <div class="sync-progress">
                         <div class="sync-progress-bar" id="syncProgressBar"></div>
                     </div>
@@ -107,23 +979,11 @@
                 if (progress >= 100) clearInterval(interval);
             }, 300);
             
-            // 确定同步类型
-            const syncType = command.toLowerCase().includes('full') ? 'full' : 'normal';
-            
             // 执行同步
             setTimeout(async () => {
                 try {
-                    let articlesResult, usersResult;
-                    
-                    if (syncType === 'full') {
-                        // 强制全量同步
-                        articlesResult = await syncData('articles');
-                        usersResult = await syncData('users');
-                    } else {
-                        // 正常同步
-                        articlesResult = await syncData('articles');
-                        usersResult = await syncData('users');
-                    }
+                    let articlesResult = await syncData('articles');
+                    let usersResult = await syncData('users');
                     
                     syncStatus.className = 'sync-status success';
                     syncStatus.innerHTML = `
@@ -135,9 +995,10 @@
                         </div>
                         <div class="sync-actions">
                             <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Sync Again</div>
-                            <div class="sync-btn full-sync" onclick="handleCommand('SYNC ${SYNC_TOKEN} FULL')">Full Sync</div>
                         </div>
                     `;
+                    
+                    showNotification('Data synchronization successful');
                 } catch (e) {
                     syncStatus.className = 'sync-status error';
                     syncStatus.innerHTML = `
@@ -150,11 +1011,36 @@
                             <div class="sync-btn" onclick="handleCommand('SYNC ${SYNC_TOKEN}')">Retry</div>
                         </div>
                     `;
+                    showNotification('Synchronization failed: ' + e.message);
                 }
             }, 3000);
         }
 
-        // ... 其他代码保持不变 ...
+        // 初始化终端
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化数据
+            initData();
+            
+            // 更新时间
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            const inputField = document.getElementById('input-field');
+            
+            // 事件监听
+            inputField.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const command = inputField.value.trim();
+                    if (command) {
+                        handleCommand(command);
+                    }
+                }
+            });
+            
+            // 全局暴露函数
+            window.handleCommand = handleCommand;
+            window.login = login;
+        });
     </script>
 </body>
 </html>
