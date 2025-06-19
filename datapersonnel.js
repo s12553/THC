@@ -1,14 +1,6 @@
 /**
  * SCP Foundation Personnel Database
  * Contains user credentials and access levels
- * 
- * Format: 
- *   "username | password": {
- *     name: "Full Name",
- *     role: "Position",
- *     site: "Location",
- *     level: ClearanceLevel
- *   }
  */
 
 function loadPersonnelData() {
@@ -35,13 +27,22 @@ function loadPersonnelData() {
             name: "SCP-ꙮ",
             role: "Chief Engineer of the Chaos Splitter",
             site: "████████",
-            level: 6
+            level: 6,
+            isO5: true
         },
         "oadmin@foundation.scp | omega-level-secure": {
             name: "O5-6",
             role: "Overseer Council Member",
             site: "Area-00",
-            level: 6
+            level: 6,
+            isO5: true
+        },
+        "o5-3@foundation.scp | securepassword123": {
+            name: "O5-3",
+            role: "Overseer Council Member",
+            site: "Area-00",
+            level: 6,
+            isO5: true
         }
     };
 }
