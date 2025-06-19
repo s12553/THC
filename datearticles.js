@@ -1,7 +1,4 @@
-/**
- * SCP Foundation Articles Database
- * Contains SCP documentation with searchable content
- */
+
 
 function loadArticlesData() {
     return {
