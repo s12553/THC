@@ -527,6 +527,19 @@
             localStorage.setItem('usersData', JSON.stringify(usersData));
         }
         
+        // 处理凭证输入
+        function handleCredentialInput(credentials) {
+            if (usersData[credentials] && usersData[credentials].name === currentLoginUsername) {
+                currentUser = usersData[credentials];
+                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+                addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
+            } else {
+                addOutput('<div class="error">ERROR: Invalid credentials</div>');
+            }
+            currentLoginUsername = null;
+            awaitingCredentials = false;
+        }
+        
         // 初始化终端
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化数据
@@ -566,20 +579,29 @@
             }
             
             inputField.addEventListener('keydown', handleInput);
+            inputField.focus();
         });
         
-        // 处理凭证输入
-        function handleCredentialInput(credentials) {
-            if (usersData[credentials] && usersData[credentials].name === currentLoginUsername) {
-                currentUser = usersData[credentials];
-                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
-                addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
-            } else {
-                addOutput('<div class="error">ERROR: Invalid credentials</div>');
+        // 全局可访问的命令处理函数
+        window.handleCommand = function(command) {
+            addOutput(command, true);
+            
+            if (!currentUser && !command.toLowerCase().startsWith('login')) {
+                addOutput('<div class="error">ERROR: You must log in first</div>');
+                addOutput('<div>Type LOGIN [USERNAME] to begin authentication</div>');
+                return;
             }
-            currentLoginUsername = null;
-            awaitingCredentials = false;
-        }
+            
+            const parts = command.split(' ');
+            const cmd = parts[0].toLowerCase();
+            
+            if (window.commandHandlers && window.commandHandlers[cmd]) {
+                window.commandHandlers[cmd](parts);
+            } else {
+                addOutput('<div class="error">ERROR: Unknown command</div>');
+                addOutput('<div>Type HELP for available commands</div>');
+            }
+        };
     </script>
 </body>
 </html>
