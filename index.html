@@ -35,29 +35,149 @@
             overflow: hidden;
         }
         
-        /* ... 其他样式保持不变 ... */
-
-        /* 新增样式 */
-        .search-confirm {
-            color: #66aaff;
-            margin: 10px 0;
-            padding: 5px;
-            border-left: 2px solid #66aaff;
+        .terminal-header {
+            background: linear-gradient(to right, #003300, #002200);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #004400;
         }
-
-        .mark-tag {
-            display: inline-block;
-            background-color: #660066;
-            color: #ff99ff;
-            padding: 2px 6px;
+        
+        .header-title {
+            color: #00cc00;
+            font-weight: bold;
+            flex-grow: 1;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .header-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .btn-red { background-color: #ff5f56; }
+        .btn-yellow { background-color: #ffbd2e; }
+        .btn-green { background-color: #27c93f; }
+        
+        .terminal-body {
+            padding: 20px;
+            min-height: 500px;
+            background-color: #0c0c0c;
+            overflow-y: auto;
+            max-height: 70vh;
+            border: 1px solid #222;
+            margin: 10px;
             border-radius: 3px;
-            font-size: 0.8em;
-            margin-left: 5px;
         }
+        
+        .terminal-output {
+            white-space: pre-wrap;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+        
+        .output-line {
+            margin-bottom: 8px;
+        }
+        
+        .command-input {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #080808;
+            border-top: 1px solid #222;
+        }
+        
+        .prompt {
+            color: #00cc00;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        #input-field {
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 15px;
+            width: 100%;
+            outline: none;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* 搜索相关样式 */
+        .search-results {
+            margin: 10px 0;
+            padding-left: 20px;
+            border-left: 1px solid #444;
+        }
+        
+        .search-item {
+            margin: 5px 0;
+            color: #cccccc;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .search-item:hover {
+            background-color: #1a1a1a;
+        }
+        
+        .search-error {
+            color: #ff5555;
+            font-style: italic;
+        }
+        
+        .search-match {
+            background-color: #333;
+            color: #fff;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        
+        /* 其他原有样式保持不变... */
     </style>
 </head>
 <body>
-    <!-- HTML内容保持不变 -->
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="header-title">SCIPNET Direct Storage Terminal - Security Protocol 2317-Alpha</div>
+            <div class="header-buttons">
+                <div class="header-btn btn-red"></div>
+                <div class="header-btn btn-yellow"></div>
+                <div class="header-btn btn-green"></div>
+            </div>
+        </div>
+        
+        <div class="terminal-body">
+            <div class="terminal-output" id="output">
+                <div class="output-line">SCP Foundation Terminal Access System</div>
+                <div class="system-info">Warning: This database is restricted to Foundation personnel with Level 1 clearance or higher. Some records require Level 5 or 6 clearance. Unauthorized access will result in immediate tracking and disciplinary action.</div>
+                <div class="github-status status-connected">
+                    <i class="fas fa-circle connected"></i> Local Database Status: Active
+                </div>
+                <div class="system-info">System time: <span id="system-time">2:30 PM, Wednesday, June 18</span></div>
+                <div class="login-prompt">> Type LOGIN to begin authentication</div>
+            </div>
+        </div>
+        
+        <div class="command-input">
+            <div class="prompt">> </div>
+            <input type="text" id="input-field" autocomplete="off" autofocus>
+            <div class="blinking-cursor"></div>
+        </div>
+        
+        <div class="footer">
+            SCP Foundation - Secure Information Management System | Current Time: <span id="current-time">2025-06-18 14:30:15</span> | Security Level: Gamma
+        </div>
+    </div>
+
+    <!-- 引入模块化JS文件 -->
     <script src="data/personnel.js"></script>
     <script src="data/articles.js"></script>
     <script src="commands/commands.js"></script>
@@ -68,38 +188,119 @@
         let currentUser = null;
         let contentData = { articles: {} };
         let usersData = {};
-        let pendingAction = null; // 用于处理Y/N确认
         
-        // ... 其他函数保持不变 ...
-
-        // 修改初始化函数以处理Y/N确认
+        // 更新当前时间
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = 
+                `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+        }
+        
+        // 添加输出到终端
+        function addOutput(text, isCommand = false) {
+            const outputDiv = document.getElementById('output');
+            const line = document.createElement('div');
+            line.className = 'output-line';
+            
+            if (isCommand) {
+                line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
+            } else {
+                line.innerHTML = text;
+            }
+            
+            outputDiv.appendChild(line);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        // 显示权限警告
+        function showPermissionWarning(requiredLevel) {
+            const outputDiv = document.getElementById('output');
+            const warning = document.createElement('div');
+            warning.className = 'permission-warning';
+            warning.innerHTML = `
+                <div class="access-denied">
+                    <h2>ACCESS DENIED</h2>
+                    <p>Warning: Insufficient clearance level</p>
+                    <p>Required clearance: Level ${requiredLevel}+</p>
+                    <p>Your clearance: Level ${currentUser?.level || 0}</p>
+                </div>
+                <p>Contact site administrator or O5 Council for access upgrade</p>
+            `;
+            outputDiv.appendChild(warning);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        // 初始化数据
+        function initData() {
+            // 加载人员数据
+            usersData = loadPersonnelData();
+            
+            // 加载文章数据
+            contentData = loadArticlesData();
+            
+            // 保存到localStorage（如果不存在）
+            if (!localStorage.getItem('contentData')) {
+                localStorage.setItem('contentData', JSON.stringify(contentData));
+            }
+            
+            if (!localStorage.getItem('usersData')) {
+                localStorage.setItem('usersData', JSON.stringify(usersData));
+            }
+            
+            // 从localStorage加载数据
+            try {
+                const savedContent = localStorage.getItem('contentData');
+                if (savedContent) {
+                    contentData = JSON.parse(savedContent);
+                }
+                
+                const savedUsers = localStorage.getItem('usersData');
+                if (savedUsers) {
+                    usersData = JSON.parse(savedUsers);
+                }
+            } catch (e) {
+                console.error("Error loading data:", e);
+                addOutput('<div class="error">Database corruption detected. Restoring defaults...</div>');
+                contentData = loadArticlesData();
+                usersData = loadPersonnelData();
+                saveDataToLocal();
+            }
+        }
+        
+        // 保存数据到本地存储
+        function saveDataToLocal() {
+            localStorage.setItem('contentData', JSON.stringify(contentData));
+            localStorage.setItem('usersData', JSON.stringify(usersData));
+        }
+        
+        // 初始化终端
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化数据
             initData();
+            
+            // 更新时间
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             
+            // 设置系统时间显示
             const now = new Date();
             const options = { hour: 'numeric', minute: 'numeric', weekday: 'long', month: 'long', day: 'numeric' };
             document.getElementById('system-time').textContent = now.toLocaleDateString('en-US', options);
             
             const inputField = document.getElementById('input-field');
             
+            // 添加命令输出
             function handleInput(e) {
                 if (e.key === 'Enter') {
                     const command = inputField.value.trim();
                     if (command) {
-                        // 处理Y/N确认
-                        if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
-                            pendingAction(command.toLowerCase() === 'y');
-                            pendingAction = null;
-                        } else {
-                            handleCommand(command);
-                        }
+                        handleCommand(command);
                         inputField.value = '';
                     }
                 }
             }
             
+            // 事件监听
             inputField.addEventListener('keydown', handleInput);
         });
     </script>
