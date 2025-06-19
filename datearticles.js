@@ -1,5 +1,4 @@
 
-
 function loadArticlesData() {
     return {
         "2317": {
