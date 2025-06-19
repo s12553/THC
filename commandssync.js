@@ -37,3 +37,5 @@ function handleSyncDownload(repo, token) {
         }
     }, 2000);
 }
+window.commandHandlers = window.commandHandlers || {};
+window.commandHandlers.sync = handleSync;
