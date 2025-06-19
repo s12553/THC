@@ -1,6 +1,5 @@
 /**
  * GitHub Synchronization Module
- * Handles data sync with GitHub repositories
  */
 
 // 处理上传同步
@@ -32,9 +31,6 @@ function handleSyncDownload(repo, token) {
         if (success) {
             addOutput('<div class="success">Data successfully downloaded from GitHub</div>');
             addOutput('<div class="system-info">Local database updated with latest SCP documentation</div>');
-            
-            // 在实际实现中，这里会从GitHub加载数据
-            // 并更新本地存储
         } else {
             addOutput('<div class="error">ERROR: Failed to download data from GitHub</div>');
             addOutput('<div>Possible causes: Invalid token, repository not found, or network issues</div>');
