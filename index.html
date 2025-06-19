@@ -110,7 +110,200 @@
             font-family: 'Courier New', monospace;
         }
         
-        /* 搜索相关样式 */
+        .scp-header {
+            color: #00cc00;
+            text-align: center;
+            margin: 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+        
+        .scp-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-left: 2px solid #004400;
+        }
+        
+        .scp-title {
+            color: #00cc00;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .scp-content {
+            color: #cccccc;
+            line-height: 1.6;
+        }
+        
+        .warning {
+            color: #ff5555;
+            font-weight: bold;
+            background-color: #220000;
+            padding: 10px;
+            border: 1px solid #ff0000;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .restricted {
+            color: #ffaa00;
+            background-color: #1f1f00;
+            padding: 5px;
+            border-left: 3px solid #ffaa00;
+            margin-top: 10px;
+        }
+        
+        .data-deleted {
+            background-color: #220000;
+            color: #ff5555;
+            padding: 2px 5px;
+            display: inline-block;
+        }
+        
+        .permission-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .level-0 { background-color: #003366; color: #66aaff; }
+        .level-1 { background-color: #336600; color: #99ff66; }
+        .level-2 { background-color: #663300; color: #ffcc66; }
+        .level-3 { background-color: #660033; color: #ff66aa; }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #555;
+            font-size: 12px;
+            border-top: 1px solid #222;
+            background-color: #080808;
+        }
+        
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background-color: #00cc00;
+            margin-left: 5px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .user-info {
+            color: #66aaff;
+            margin: 10px 0;
+            padding-left: 5px;
+            border-left: 2px solid #66aaff;
+        }
+        
+        .error {
+            color: #ff5555;
+            background-color: #220000;
+            padding: 5px;
+            margin: 5px 0;
+        }
+        
+        .success {
+            color: #55ff55;
+            background-color: #002200;
+            padding: 5px;
+            margin: 5px 0;
+        }
+        
+        .admin-only {
+            color: #ff66aa;
+            border-left: 2px solid #ff66aa;
+            padding: 5px;
+            margin: 10px 0;
+        }
+        
+        .permission-warning {
+            background: linear-gradient(45deg, #220000, #440000);
+            border: 1px solid #ff5555;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+        
+        .access-denied {
+            text-align: center;
+            padding: 20px;
+            background: repeating-linear-gradient(
+                45deg,
+                #1a0000,
+                #1a0000 10px,
+                #220000 10px,
+                #220000 20px
+            );
+            border: 1px solid #ff0000;
+            margin: 20px 0;
+        }
+        
+        .access-denied h2 {
+            color: #ff5555;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .access-denied p {
+            color: #ff9999;
+        }
+        
+        .system-info {
+            color: #66aaff;
+            background-color: #001a33;
+            padding: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #66aaff;
+        }
+        
+        .data-structure {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .github-status {
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        
+        .status-connected {
+            background-color: #002200;
+            color: #55ff55;
+            border-left: 3px solid #55ff55;
+        }
+        
+        .login-prompt {
+            color: #66aaff;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .command-prompt {
+            color: #00cc00;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
         .search-results {
             margin: 10px 0;
             padding-left: 20px;
@@ -120,17 +313,77 @@
         .search-item {
             margin: 5px 0;
             color: #cccccc;
-            padding: 5px;
-            border-bottom: 1px solid #333;
-        }
-        
-        .search-item:hover {
-            background-color: #1a1a1a;
         }
         
         .search-error {
             color: #ff5555;
-            font-style: italic;
+        }
+        
+        .document-header {
+            color: #00cc00;
+            font-weight: bold;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .document-content {
+            background-color: #001100;
+            padding: 15px;
+            border: 1px solid #004400;
+            margin: 10px 0;
+        }
+        
+        .status-list {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .status-item {
+            margin: 5px 0;
+        }
+        
+        .status-success {
+            color: #55ff55;
+        }
+        
+        .status-neutralized {
+            color: #ffaa00;
+        }
+        
+        .status-located {
+            color: #66aaff;
+        }
+        
+        .mailbox-header {
+            color: #00cc00;
+            margin: 10px 0;
+            text-align: center;
+            text-decoration: underline;
+        }
+        
+        .mailbox-content {
+            background-color: #001133;
+            padding: 15px;
+            border: 1px solid #004488;
+            margin: 10px 0;
+        }
+        
+        /* 新增样式 */
+        .search-confirm {
+            color: #66aaff;
+            margin: 10px 0;
+            padding: 5px;
+            border-left: 2px solid #66aaff;
+        }
+
+        .mark-tag {
+            display: inline-block;
+            background-color: #660066;
+            color: #ff99ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-left: 5px;
         }
         
         .search-match {
@@ -139,8 +392,6 @@
             padding: 0 2px;
             border-radius: 2px;
         }
-        
-        /* 其他原有样式保持不变... */
     </style>
 </head>
 <body>
@@ -162,7 +413,7 @@
                     <i class="fas fa-circle connected"></i> Local Database Status: Active
                 </div>
                 <div class="system-info">System time: <span id="system-time">2:30 PM, Wednesday, June 18</span></div>
-                <div class="login-prompt">> Type LOGIN to begin authentication</div>
+                <div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>
             </div>
         </div>
         
@@ -188,6 +439,9 @@
         let currentUser = null;
         let contentData = { articles: {} };
         let usersData = {};
+        let pendingAction = null; // 用于处理Y/N确认
+        let currentLoginUsername = null; // 当前登录用户名
+        let awaitingCredentials = false; // 是否在等待凭证输入
         
         // 更新当前时间
         function updateCurrentTime() {
@@ -289,20 +543,43 @@
             
             const inputField = document.getElementById('input-field');
             
-            // 添加命令输出
             function handleInput(e) {
                 if (e.key === 'Enter') {
                     const command = inputField.value.trim();
                     if (command) {
-                        handleCommand(command);
+                        // 处理Y/N确认
+                        if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
+                            pendingAction(command.toLowerCase() === 'y');
+                            pendingAction = null;
+                        } 
+                        // 处理凭证输入
+                        else if (awaitingCredentials) {
+                            handleCredentialInput(command);
+                        }
+                        // 处理普通命令
+                        else {
+                            handleCommand(command);
+                        }
                         inputField.value = '';
                     }
                 }
             }
             
-            // 事件监听
             inputField.addEventListener('keydown', handleInput);
         });
+        
+        // 处理凭证输入
+        function handleCredentialInput(credentials) {
+            if (usersData[credentials] && usersData[credentials].name === currentLoginUsername) {
+                currentUser = usersData[credentials];
+                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+                addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
+            } else {
+                addOutput('<div class="error">ERROR: Invalid credentials</div>');
+            }
+            currentLoginUsername = null;
+            awaitingCredentials = false;
+        }
     </script>
 </body>
 </html>
