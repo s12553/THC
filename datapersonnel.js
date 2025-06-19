@@ -1,7 +1,4 @@
-/**
- * SCP Foundation Personnel Database
- * Contains user credentials and access levels
- */
+
 
 function loadPersonnelData() {
     return {
