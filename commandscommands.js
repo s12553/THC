@@ -1,7 +1,4 @@
-/**
- * Command Handling Module
- * Includes full search functionality and O5 features
- */
+
 
 // 命令处理函数映射
 const commandHandlers = {
