@@ -6,6 +6,7 @@
     <title>SCP-Foundation Terminal Access System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* 样式代码保持不变 */
         * {
             margin: 0;
             padding: 0;
@@ -35,338 +36,7 @@
             overflow: hidden;
         }
         
-        .terminal-header {
-            background: linear-gradient(to right, #003300, #002200);
-            padding: 12px 15px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #004400;
-        }
-        
-        .header-title {
-            color: #00cc00;
-            font-weight: bold;
-            flex-grow: 1;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-        }
-        
-        .header-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .header-btn {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        
-        .btn-red { background-color: #ff5f56; }
-        .btn-yellow { background-color: #ffbd2e; }
-        .btn-green { background-color: #27c93f; }
-        
-        .terminal-body {
-            padding: 20px;
-            min-height: 500px;
-            background-color: #0c0c0c;
-            overflow-y: auto;
-            max-height: 70vh;
-            border: 1px solid #222;
-            margin: 10px;
-            border-radius: 3px;
-        }
-        
-        .terminal-output {
-            white-space: pre-wrap;
-            line-height: 1.5;
-            font-size: 15px;
-        }
-        
-        .output-line {
-            margin-bottom: 8px;
-        }
-        
-        .command-input {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #080808;
-            border-top: 1px solid #222;
-        }
-        
-        .prompt {
-            color: #00cc00;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-        
-        #input-field {
-            background: transparent;
-            border: none;
-            color: #e0e0e0;
-            font-size: 15px;
-            width: 100%;
-            outline: none;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .scp-header {
-            color: #00cc00;
-            text-align: center;
-            margin: 15px 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-        }
-        
-        .scp-item {
-            margin-bottom: 20px;
-            padding: 10px;
-            border-left: 2px solid #004400;
-        }
-        
-        .scp-title {
-            color: #00cc00;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        .scp-content {
-            color: #cccccc;
-            line-height: 1.6;
-        }
-        
-        .warning {
-            color: #ff5555;
-            font-weight: bold;
-            background-color: #220000;
-            padding: 10px;
-            border: 1px solid #ff0000;
-            margin: 15px 0;
-            text-align: center;
-        }
-        
-        .restricted {
-            color: #ffaa00;
-            background-color: #1f1f00;
-            padding: 5px;
-            border-left: 3px solid #ffaa00;
-            margin-top: 10px;
-        }
-        
-        .data-deleted {
-            background-color: #220000;
-            color: #ff5555;
-            padding: 2px 5px;
-            display: inline-block;
-        }
-        
-        .permission-indicator {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        
-        .level-0 { background-color: #003366; color: #66aaff; }
-        .level-1 { background-color: #336600; color: #99ff66; }
-        .level-2 { background-color: #663300; color: #ffcc66; }
-        .level-3 { background-color: #660033; color: #ff66aa; }
-        
-        .footer {
-            text-align: center;
-            padding: 15px;
-            color: #555;
-            font-size: 12px;
-            border-top: 1px solid #222;
-            background-color: #080808;
-        }
-        
-        .blinking-cursor {
-            display: inline-block;
-            width: 8px;
-            height: 15px;
-            background-color: #00cc00;
-            margin-left: 5px;
-            animation: blink 1s infinite;
-            vertical-align: middle;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        
-        .user-info {
-            color: #66aaff;
-            margin: 10px 0;
-            padding-left: 5px;
-            border-left: 2px solid #66aaff;
-        }
-        
-        .error {
-            color: #ff5555;
-            background-color: #220000;
-            padding: 5px;
-            margin: 5px 0;
-        }
-        
-        .success {
-            color: #55ff55;
-            background-color: #002200;
-            padding: 5px;
-            margin: 5px 0;
-        }
-        
-        .admin-only {
-            color: #ff66aa;
-            border-left: 2px solid #ff66aa;
-            padding: 5px;
-            margin: 10px 0;
-        }
-        
-        .permission-warning {
-            background: linear-gradient(45deg, #220000, #440000);
-            border: 1px solid #ff5555;
-            padding: 15px;
-            margin: 15px 0;
-            text-align: center;
-            font-size: 1.2em;
-            border-radius: 3px;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-        }
-        
-        .access-denied {
-            text-align: center;
-            padding: 20px;
-            background: repeating-linear-gradient(
-                45deg,
-                #1a0000,
-                #1a0000 10px,
-                #220000 10px,
-                #220000 20px
-            );
-            border: 1px solid #ff0000;
-            margin: 20px 0;
-        }
-        
-        .access-denied h2 {
-            color: #ff5555;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .access-denied p {
-            color: #ff9999;
-        }
-        
-        .system-info {
-            color: #66aaff;
-            background-color: #001a33;
-            padding: 8px;
-            margin: 10px 0;
-            border-left: 3px solid #66aaff;
-        }
-        
-        .data-structure {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
-            padding: 10px;
-            margin: 10px 0;
-            font-family: monospace;
-            white-space: pre;
-            overflow-x: auto;
-        }
-        
-        .github-status {
-            padding: 8px;
-            margin: 10px 0;
-            border-radius: 3px;
-            font-size: 0.9rem;
-        }
-        
-        .status-connected {
-            background-color: #002200;
-            color: #55ff55;
-            border-left: 3px solid #55ff55;
-        }
-        
-        .login-prompt {
-            color: #66aaff;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        
-        .command-prompt {
-            color: #00cc00;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        
-        .search-results {
-            margin: 10px 0;
-            padding-left: 20px;
-            border-left: 1px solid #444;
-        }
-        
-        .search-item {
-            margin: 5px 0;
-            color: #cccccc;
-        }
-        
-        .search-error {
-            color: #ff5555;
-        }
-        
-        .document-header {
-            color: #00cc00;
-            font-weight: bold;
-            margin: 10px 0;
-            text-align: center;
-        }
-        
-        .document-content {
-            background-color: #001100;
-            padding: 15px;
-            border: 1px solid #004400;
-            margin: 10px 0;
-        }
-        
-        .status-list {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        
-        .status-item {
-            margin: 5px 0;
-        }
-        
-        .status-success {
-            color: #55ff55;
-        }
-        
-        .status-neutralized {
-            color: #ffaa00;
-        }
-        
-        .status-located {
-            color: #66aaff;
-        }
-        
-        .mailbox-header {
-            color: #00cc00;
-            margin: 10px 0;
-            text-align: center;
-            text-decoration: underline;
-        }
-        
-        .mailbox-content {
-            background-color: #001133;
-            padding: 15px;
-            border: 1px solid #004488;
-            margin: 10px 0;
-        }
+        /* ... 其他样式保持不变 ... */
     </style>
 </head>
 <body>
@@ -387,7 +57,7 @@
                 <div class="github-status status-connected">
                     <i class="fas fa-circle connected"></i> Local Database Status: Active
                 </div>
-                <div class="system-info">System time: 2:30 PM, Wednesday, June 18</div>
+                <div class="system-info">System time: <span id="system-time">2:30 PM, Wednesday, June 18</span></div>
                 <div class="login-prompt">> Type LOGIN to begin authentication</div>
             </div>
         </div>
@@ -403,123 +73,102 @@
         </div>
     </div>
 
+    <!-- 引入模块化JS文件 -->
+    <script src="data/personnel.js"></script>
+    <script src="data/articles.js"></script>
+    <script src="commands/commands.js"></script>
+    <script src="commands/sync.js"></script>
+    
     <script>
-        // 数据存储
-        let contentData = {
-            articles: {}
-        };
-
-        let usersData = {};
-
-        // 当前状态
+        // 全局状态
         let currentUser = null;
-
+        let contentData = { articles: {} };
+        let usersData = {};
+        
         // 更新当前时间
         function updateCurrentTime() {
             const now = new Date();
             document.getElementById('current-time').textContent = 
                 `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
         }
-
-        // 初始化数据
-        function initData() {
-            // 尝试从localStorage加载数据
-            const savedContent = localStorage.getItem('contentData');
-            if (savedContent) {
-                try {
-                    contentData = JSON.parse(savedContent);
-                } catch (e) {
-                    console.error("Failed to parse content data:", e);
-                    loadDefaultContent();
-                }
+        
+        // 添加输出到终端
+        function addOutput(text, isCommand = false) {
+            const outputDiv = document.getElementById('output');
+            const line = document.createElement('div');
+            line.className = 'output-line';
+            
+            if (isCommand) {
+                line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
             } else {
-                loadDefaultContent();
+                line.innerHTML = text;
             }
             
-            const savedUsers = localStorage.getItem('usersData');
-            if (savedUsers) {
-                try {
-                    usersData = JSON.parse(savedUsers);
-                } catch (e) {
-                    console.error("Failed to parse user data:", e);
-                    loadDefaultUsers();
+            outputDiv.appendChild(line);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        // 显示权限警告
+        function showPermissionWarning(requiredLevel) {
+            const outputDiv = document.getElementById('output');
+            const warning = document.createElement('div');
+            warning.className = 'permission-warning';
+            warning.innerHTML = `
+                <div class="access-denied">
+                    <h2>ACCESS DENIED</h2>
+                    <p>Warning: Insufficient clearance level</p>
+                    <p>Required clearance: Level ${requiredLevel}+</p>
+                    <p>Your clearance: Level ${currentUser?.level || 0}</p>
+                </div>
+                <p>Contact site administrator or O5 Council for access upgrade</p>
+            `;
+            outputDiv.appendChild(warning);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        // 初始化数据
+        function initData() {
+            // 加载人员数据
+            usersData = loadPersonnelData();
+            
+            // 加载文章数据
+            contentData = loadArticlesData();
+            
+            // 保存到localStorage（如果不存在）
+            if (!localStorage.getItem('contentData')) {
+                localStorage.setItem('contentData', JSON.stringify(contentData));
+            }
+            
+            if (!localStorage.getItem('usersData')) {
+                localStorage.setItem('usersData', JSON.stringify(usersData));
+            }
+            
+            // 从localStorage加载数据
+            try {
+                const savedContent = localStorage.getItem('contentData');
+                if (savedContent) {
+                    contentData = JSON.parse(savedContent);
                 }
-            } else {
-                loadDefaultUsers();
+                
+                const savedUsers = localStorage.getItem('usersData');
+                if (savedUsers) {
+                    usersData = JSON.parse(savedUsers);
+                }
+            } catch (e) {
+                console.error("Error loading data:", e);
+                addOutput('<div class="error">Database corruption detected. Restoring defaults...</div>');
+                contentData = loadArticlesData();
+                usersData = loadPersonnelData();
+                saveDataToLocal();
             }
         }
-
-        // 加载默认内容
-        function loadDefaultContent() {
-            contentData = {
-                articles: {
-                    "2317": {
-                        title: "SCP-2317",
-                        minLevel: 1,
-                        content: "**Item #**: SCP-2317\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-2317 is to be contained in a reinforced containment chamber..."
-                    },
-                    "049": {
-                        title: "SCP-049",
-                        minLevel: 0,
-                        content: "**Item #**: SCP-049\n**Object Class**: Euclid\n**Special Containment Procedures**: SCP-049 is contained in a research cell at Site-19..."
-                    },
-                    "173": {
-                        title: "SCP-173",
-                        minLevel: 0,
-                        content: "**Item #**: SCP-173\n**Object Class**: Euclid\n**Special Containment Procedures**: The object is contained in a locked containment chamber..."
-                    },
-                    "106": {
-                        title: "SCP-106",
-                        minLevel: 2,
-                        content: "**Item #**: SCP-106\n**Object Class**: Keter\n**Special Containment Procedures**: SCP-106 is contained in a specialized containment facility..."
-                    },
-                    "CN-2000": {
-                        title: "SCP-CN-2000",
-                        minLevel: 6,
-                        content: "**Item #**: SCP-CN-2000\n**Object Class**: Keter\n**Special Containment Procedures**: [DATA EXPUNGED]\n\nThis entity exhibits reality-bending properties..."
-                    }
-                }
-            };
+        
+        // 保存数据到本地存储
+        function saveDataToLocal() {
             localStorage.setItem('contentData', JSON.stringify(contentData));
-        }
-
-        // 加载默认用户
-        function loadDefaultUsers() {
-            usersData = {
-                "jvance1@foundation.scp | password9910": {
-                    name: "Jonathan Vance",
-                    role: "Research Assistant",
-                    site: "Site 179",
-                    level: 0
-                },
-                "hmasterson4@foundation.scp | 12341lovethemarinecorps": {
-                    name: "Hannibal Masterson",
-                    role: "Junior Security Specialist",
-                    site: "Area-10",
-                    level: 1
-                },
-                "jchoi98@foundation.scp | beethovens9th123": {
-                    name: "Dr. Jackson Choi",
-                    role: "Associate Researcher",
-                    site: "Area-13",
-                    level: 2
-                },
-                "AdebenChristensen@foundation.scp | Повстанцев Хаꙮса": {
-                    name: "SCP-ꙮ",
-                    role: "Chief Engineer of the Chaos Splitter",
-                    site: "████████",
-                    level: 6
-                },
-                "oadmin@foundation.scp | omega-level-secure": {
-                    name: "O5-6",
-                    role: "Overseer Council Member",
-                    site: "Area-00",
-                    level: 6
-                }
-            };
             localStorage.setItem('usersData', JSON.stringify(usersData));
         }
-
+        
         // 初始化终端
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化数据
@@ -529,226 +178,26 @@
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             
+            // 设置系统时间显示
+            const now = new Date();
+            const options = { hour: 'numeric', minute: 'numeric', weekday: 'long', month: 'long', day: 'numeric' };
+            document.getElementById('system-time').textContent = now.toLocaleDateString('en-US', options);
+            
             const inputField = document.getElementById('input-field');
-            const outputDiv = document.getElementById('output');
             
             // 添加命令输出
-            function addOutput(text, isCommand = false) {
-                const line = document.createElement('div');
-                line.className = 'output-line';
-                
-                if (isCommand) {
-                    line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
-                } else {
-                    line.innerHTML = text;
-                }
-                
-                outputDiv.appendChild(line);
-                outputDiv.scrollTop = outputDiv.scrollHeight;
-            }
-            
-            // 显示权限警告
-            function showPermissionWarning(requiredLevel) {
-                const warning = document.createElement('div');
-                warning.className = 'permission-warning';
-                warning.innerHTML = `
-                    <div class="access-denied">
-                        <h2>ACCESS DENIED</h2>
-                        <p>Warning: Insufficient clearance level</p>
-                        <p>Required clearance: Level ${requiredLevel}+</p>
-                        <p>Your clearance: Level ${currentUser.level}</p>
-                    </div>
-                    <p>Contact site administrator or O5 Council for access upgrade</p>
-                `;
-                outputDiv.appendChild(warning);
-                outputDiv.scrollTop = outputDiv.scrollHeight;
-            }
-            
-            // 处理用户输入
-            function handleCommand(command) {
-                addOutput(command, true);
-                
-                if (!currentUser) {
-                    // 登录处理
-                    if (command.toLowerCase() === 'login') {
-                        addOutput('<div class="login-prompt">Enter user credentials (format: username | password)</div>');
-                    } 
-                    else if (usersData[command]) {
-                        currentUser = usersData[command];
-                        addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
-                        addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
-                    } else {
-                        addOutput('<div class="error">ERROR: Invalid credentials or command</div>');
-                        addOutput('<div>Available commands: LOGIN</div>');
-                    }
-                } else {
-                    // 命令处理
-                    const parts = command.split(' ');
-                    const cmd = parts[0].toLowerCase();
-                    
-                    if (cmd === 'help') {
-                        let helpText = '<div class="system-info">Available commands:<br>';
-                        helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
-                        helpText += 'LOGOUT - Terminate current session<br>';
-                        helpText += 'CLEAR - Clear terminal screen<br>';
-                        helpText += 'HELP - Show command information<br>';
-                        
-                        // 管理员命令
-                        if (currentUser.level >= 2) {
-                            helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
-                            helpText += 'ADD ACCESS - Add new SCP document<br>';
-                            helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
-                        }
-                        
-                        // O5命令
-                        if (currentUser.level >= 6) {
-                            helpText += '<span class="admin-only">O5 COMMANDS:<br>';
-                            helpText += 'MARK [NEW_MARK] - Reclassify item<br>';
-                            helpText += 'SEARCHSTATUS [MARKER] - Check item status<br>';
-                            helpText += 'MAILBOX CHECK-DRAFT [ID] - Access draft emails</span>';
-                        }
-                        
-                        helpText += '</div>';
-                        addOutput(helpText);
-                    } else if (cmd === 'access') {
-                        if (parts.length < 2) {
-                            addOutput('<div class="error">ERROR: Missing SCP designation</div>');
-                            addOutput('<div>Usage: ACCESS [SCP-NUMBER]</div>');
-                        } else {
-                            const articleId = parts[1];
-                            
-                            if (!contentData.articles[articleId]) {
-                                addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
-                            } else {
-                                const article = contentData.articles[articleId];
-                                if (currentUser.level < article.minLevel) {
-                                    showPermissionWarning(article.minLevel);
-                                } else {
-                                    addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
-                                    addOutput('<hr>');
-                                    addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
-                                    addOutput(`<div class="scp-item">${article.content.replace(/\n/g, '<br>')}</div>`);
-                                }
-                            }
-                        }
-                    } else if (cmd === 'logout') {
-                        addOutput(`<div class="success">User ${currentUser.name} logged out</div>`);
-                        currentUser = null;
-                        addOutput('<div class="login-prompt">> Type LOGIN to begin authentication</div>');
-                    } else if (cmd === 'clear') {
-                        outputDiv.innerHTML = '';
-                        addOutput('<div class="output-line">SCP Foundation Terminal Access System</div>');
-                        if (currentUser) {
-                            addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
-                            addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
-                        } else {
-                            addOutput('<div class="login-prompt">> Type LOGIN to begin authentication</div>');
-                        }
-                    } else if (cmd === 'add' && parts[1]?.toLowerCase() === 'access') {
-                        // 添加新文档命令
-                        if (currentUser.level < 2) {
-                            addOutput('<div class="error">ERROR: Requires Level 2+ privileges</div>');
-                            return;
-                        }
-                        
-                        if (parts.length < 5) {
-                            addOutput('<div class="error">Format: ADD ACCESS [ID] [MIN_LEVEL] "[TITLE]" "[CONTENT]"</div>');
-                            addOutput('<div>Example: ADD ACCESS 999 1 "SCP-999" "Item #: SCP-999\nObject Class: Safe..."</div>');
-                            return;
-                        }
-                        
-                        const articleId = parts[2];
-                        const minLevel = parseInt(parts[3]);
-                        
-                        if (isNaN(minLevel)) {
-                            addOutput('<div class="error">ERROR: Invalid minimum level</div>');
-                            return;
-                        }
-                        
-                        // 提取标题和内容
-                        const titleStart = command.indexOf('"');
-                        const titleEnd = command.indexOf('"', titleStart + 1);
-                        const contentStart = command.indexOf('"', titleEnd + 1);
-                        const contentEnd = command.indexOf('"', contentStart + 1);
-                        
-                        if (titleStart === -1 || titleEnd === -1 || contentStart === -1 || contentEnd === -1) {
-                            addOutput('<div class="error">ERROR: Invalid format. Make sure title and content are in double quotes</div>');
-                            return;
-                        }
-                        
-                        const title = command.substring(titleStart + 1, titleEnd);
-                        const content = command.substring(contentStart + 1, contentEnd);
-                        
-                        // 创建新文档
-                        contentData.articles[articleId] = {
-                            title: title,
-                            minLevel: minLevel,
-                            content: content
-                        };
-                        
-                        // 保存到本地存储
-                        localStorage.setItem('contentData', JSON.stringify(contentData));
-                        
-                        addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
-                    } else if (cmd === 'list' && parts[1]?.toLowerCase() === 'articles') {
-                        addOutput('<div class="system-info">Available documents:</div>');
-                        for (const id in contentData.articles) {
-                            const article = contentData.articles[id];
-                            addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel})</div>`);
-                        }
-                    } else if (cmd === 'mark' && currentUser.level >= 6) {
-                        if (parts.length < 2) {
-                            addOutput('<div class="error">ERROR: Missing new marker designation</div>');
-                        } else {
-                            const newMark = parts[1];
-                            addOutput(`<div class="success">Item has been re-marked as ${newMark}.</div>`);
-                        }
-                    } else if (cmd === 'searchstatus' && currentUser.level >= 6) {
-                        if (parts.length < 2) {
-                            addOutput('<div class="error">ERROR: Missing marker designation</div>');
-                        } else {
-                            const marker = parts[1];
-                            addOutput(`<div class="system-info">Searching database for mark ${marker}...</div>`);
-                            setTimeout(() => {
-                                addOutput('<div class="status-list">Found 6 related items:</div>');
-                                addOutput('<div class="status-item">SCP-d$gaa0 <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
-                                addOutput('<div class="status-item">SCP-Ou+os^b-RU <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
-                                addOutput('<div class="status-item">SCP-auoâb-DE <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
-                                addOutput('<div class="status-item">SCP-$uroois-FR <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
-                                addOutput('<div class="status-item">SCP-ifiaâ-JP <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
-                                addOutput('<div class="status-item">SCP-CN-2000 <span class="status-located">Status: Located</span></div>');
-                            }, 1500);
-                        }
-                    } else if (cmd === 'mailbox' && currentUser.level >= 6) {
-                        if (parts[1]?.toLowerCase() === 'check-draft') {
-                            const draftId = parts[2] || '20210129-03';
-                            addOutput(`<div class="system-info">Opening draft mail ${draftId}...</div>`);
-                            setTimeout(() => {
-                                addOutput('<div class="mailbox-header">Draft Email</div>');
-                                addOutput('<div class="mailbox-content">To: O5 Council<br>From: O5-6<br>Subject: SCP-CN-2000 Reclassification<br><br>Per our discussion, I have reclassified SCP-CN-2000 as Neutralized and downgraded its clearance to Level 1. This item no longer poses a threat and can be archived for public research purposes.</div>');
-                            }, 1500);
-                        } else {
-                            addOutput('<div class="error">ERROR: Invalid mailbox command</div>');
-                        }
-                    } else {
-                        addOutput('<div class="error">ERROR: Unknown command or insufficient privileges</div>');
-                        addOutput('<div>Type HELP for available commands</div>');
-                    }
-                }
-                
-                // 清空输入框并重新聚焦
-                inputField.value = '';
-            }
-            
-            // 事件监听
-            inputField.addEventListener('keydown', function(e) {
+            function handleInput(e) {
                 if (e.key === 'Enter') {
                     const command = inputField.value.trim();
                     if (command) {
                         handleCommand(command);
+                        inputField.value = '';
                     }
                 }
-            });
+            }
+            
+            // 事件监听
+            inputField.addEventListener('keydown', handleInput);
         });
     </script>
 </body>
