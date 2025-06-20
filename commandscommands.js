@@ -15,25 +15,39 @@ const commandHandlers = {
     setlevel: handleSetLevel
 };
 
-// 暴露命令处理器到全局作用域
-window.commandHandlers = commandHandlers;
+// 确保全局可用
+if (typeof window !== 'undefined') {
+    window.commandHandlers = commandHandlers;
+    console.log("Command handlers registered:", Object.keys(commandHandlers));
+}
 
-// 处理命令
+// 核心命令处理函数
 function handleCommand(command) {
+    console.log("Processing command:", command);
     addOutput(command, true);
     
-    if (!currentUser) {
+    // 特殊处理未认证状态
+    if (!currentUser && command.toLowerCase().startsWith('login')) {
         handleUnauthenticated(command);
+        return;
+    }
+    
+    // 分割命令
+    const parts = command.split(' ');
+    const cmd = parts[0].toLowerCase();
+    
+    // 调试信息
+    console.log("Command after lowercase:", cmd);
+    console.log("Available handlers:", Object.keys(window.commandHandlers || {}));
+    
+    // 检查命令处理器
+    if (window.commandHandlers && typeof window.commandHandlers[cmd] === 'function') {
+        console.log("Handler found for:", cmd);
+        window.commandHandlers[cmd](parts);
     } else {
-        const parts = command.split(' ');
-        const cmd = parts[0].toLowerCase();
-        
-        if (commandHandlers[cmd]) {
-            commandHandlers[cmd](parts);
-        } else {
-            addOutput('<div class="error">ERROR: Unknown command or insufficient privileges</div>');
-            addOutput('<div>Type HELP for available commands</div>');
-        }
+        console.warn("No handler for command:", cmd);
+        addOutput('<div class="error">ERROR: Unknown command</div>');
+        addOutput('<div>Type HELP for available commands</div>');
     }
 }
 
@@ -60,47 +74,36 @@ function handleUnauthenticated(command) {
     }
 }
 
+// 凭证处理函数
 function handleCredentialInput(credentials) {
     try {
         console.log("Handling credentials:", credentials);
         credentials = credentials.trim();
         
-        // 更灵活地分割用户名和密码
-        const separatorIndex = credentials.indexOf('|');
-        if (separatorIndex === -1) {
+        // 验证格式
+        if (!credentials.includes('|')) {
             addOutput('<div class="error">ERROR: Format must be: username | password</div>');
             awaitingCredentials = false;
             return;
         }
 
-        const username = credentials.substring(0, separatorIndex).trim();
-        const password = credentials.substring(separatorIndex + 1).trim();
+        // 分割凭证
+        const [inputUsername, inputPassword] = credentials.split('|').map(s => s.trim());
+        const credentialKey = `${inputUsername} | ${inputPassword}`;
         
-        // 构造可能的凭证格式
-        const credentialFormats = [
-            `${username}|${password}`,
-            `${username} | ${password}`,
-            `${username}| ${password}`
-        ];
+        console.log("Checking credential:", credentialKey);
         
-        let validUser = null;
-        
-        // 检查所有可能的凭证格式
-        for (const format of credentialFormats) {
-            if (usersData[format]) {
-                validUser = usersData[format];
-                break;
-            }
-        }
-        
-        if (validUser) {
-            // 宽松的用户名匹配
-            if (validUser.name.toLowerCase() === currentLoginUsername.toLowerCase()) {
-                currentUser = validUser;
+        // 验证凭证
+        if (usersData[credentialKey]) {
+            const user = usersData[credentialKey];
+            
+            // 验证用户名匹配
+            if (user.name.toLowerCase() === currentLoginUsername.toLowerCase()) {
+                currentUser = user;
                 addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
                 addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
             } else {
-                addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${currentLoginUsername}, Found: ${validUser.name}</div>`);
+                addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${currentLoginUsername}, Found: ${user.name}</div>`);
             }
         } else {
             addOutput('<div class="error">ERROR: Invalid credentials</div>');
@@ -109,14 +112,15 @@ function handleCredentialInput(credentials) {
         console.error("Credential processing error:", error);
         addOutput('<div class="error">SYSTEM ERROR: Credential processing failed</div>');
     } finally {
-        // 确保状态重置
+        // 重置状态
         currentLoginUsername = null;
         awaitingCredentials = false;
     }
 }
 
-// 帮助命令
-function handleHelp() {
+// 帮助命令实现
+function handleHelp(parts) {
+    console.log("Handling HELP command");
     let helpText = '<div class="system-info">Available commands:<br>';
     helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
     helpText += 'SEARCH [TERM] - Search SCP documents<br>';
@@ -125,15 +129,13 @@ function handleHelp() {
     helpText += 'CLEAR - Clear terminal screen<br>';
     helpText += 'HELP - Show command information<br>';
     
-    // 管理员命令
-    if (currentUser.level >= 2) {
+    if (currentUser?.level >= 2) {
         helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
         helpText += 'ADD ACCESS - Add new SCP document<br>';
         helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
     }
     
-    // O5命令
-    if (currentUser.isO5) {
+    if (currentUser?.isO5) {
         helpText += '<span class="admin-only">O5 COMMANDS:<br>';
         helpText += 'MARK [SCP-NUMBER] [MARK] - Add mark to SCP<br>';
         helpText += 'SETLEVEL [SCP-NUMBER] [LEVEL] - Set access level<br>';
@@ -149,8 +151,9 @@ function handleHelp() {
     addOutput(helpText);
 }
 
-// 访问SCP文档
+// SCP访问命令实现
 function handleAccess(parts) {
+    console.log("Handling ACCESS command with parts:", parts);
     if (parts.length < 2) {
         addOutput('<div class="error">ERROR: Missing SCP designation</div>');
         addOutput('<div>Usage: ACCESS [SCP-NUMBER]</div>');
@@ -158,6 +161,7 @@ function handleAccess(parts) {
     }
     
     const articleId = parts[1];
+    console.log("Requesting SCP:", articleId);
     
     if (!contentData.articles[articleId]) {
         addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
@@ -175,11 +179,13 @@ function handleAccess(parts) {
     addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
     addOutput(`<div class="scp-item">${article.content.replace(/\n/g, '<br>')}</div>`);
     
-    // 显示标记
     if (article.marks && article.marks.length > 0) {
         addOutput('<div class="system-info">Marks: ' + article.marks.map(m => `<span class="mark-tag">${m}</span>`).join(' ') + '</div>');
     }
 }
+
+// 其他命令实现保持不变（logout, clear, list等）...
+// 注意：此处应包含所有其他命令的实现，但为简洁起见省略
 
 // 登出
 function handleLogout() {
