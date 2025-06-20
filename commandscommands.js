@@ -38,6 +38,8 @@ function handleCommand(command) {
 
 // 未认证状态处理
 function handleUnauthenticated(command) {
+    // 支持 ":" 分隔符的命令格式
+    command = command.replace(':', ' ');
     const parts = command.split(' ');
     const cmd = parts[0].toLowerCase();
     
@@ -57,6 +59,19 @@ function handleUnauthenticated(command) {
     }
 }
 
+function handleCredentialInput(credentials) {
+    const userRecord = usersData[credentials];
+    
+    if (userRecord && userRecord.name === currentLoginUsername) {
+        currentUser = userRecord;
+        addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+        addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
+    } else {
+        addOutput('<div class="error">ERROR: Invalid credentials</div>');
+    }
+    currentLoginUsername = null;
+    awaitingCredentials = false;
+}
 // 帮助命令
 function handleHelp() {
     let helpText = '<div class="system-info">Available commands:<br>';
