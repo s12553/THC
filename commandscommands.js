@@ -38,72 +38,24 @@ function handleCommand(command) {
 
 // 未认证状态处理
 function handleUnauthenticated(command) {
-    // 替换所有冒号为空格
-    command = command.replace(/:/g, ' ');
-    const parts = command.split(' ').filter(part => part !== '');
+    // 替换所有冒号为空格（兼容 login:username 格式）
+    command = command.replace(/:/g, ' ').trim();
+    const parts = command.split(/\s+/); // 按任意空白字符分割
     const cmd = parts[0].toLowerCase();
-    
+
     if (cmd === 'login') {
         if (parts.length < 2) {
-            addOutput('<div class="error">ERROR: Missing username</div>');
+            addOutput('<div class="error">ERROR: Usage: LOGIN [USERNAME]</div>');
             return;
         }
-        currentLoginUsername = parts.slice(1).join(' ');
+        currentLoginUsername = parts.slice(1).join(' '); // 合并剩余部分作为用户名
         awaitingCredentials = true;
         addOutput('<div class="login-prompt">Enter credentials (username | password):</div>');
     } else {
-        addOutput('<div class="error">ERROR: Invalid command</div>');
-        addOutput('<div>Available commands: LOGIN [USERNAME]</div>');
+        addOutput('<div class="error">ERROR: Available commands: LOGIN [USERNAME]</div>');
     }
 }
-
-function handleCredentialInput(credentials) {
-    credentials = credentials.trim();
     
-    // 更灵活地分割用户名和密码
-    const separatorIndex = credentials.indexOf('|');
-    if (separatorIndex === -1) {
-        addOutput('<div class="error">ERROR: Invalid credential format. Use: username | password</div>');
-        awaitingCredentials = false;
-        return;
-    }
-    
-    const username = credentials.substring(0, separatorIndex).trim();
-    const password = credentials.substring(separatorIndex + 1).trim();
-    
-    // 构造三种可能的凭证格式
-    const credentialFormats = [
-        `${username}|${password}`,       // 无空格
-        `${username} | ${password}`,     // 带空格
-        `${username}| ${password}`       // 混合
-    ];
-    
-    let validUser = null;
-    
-    // 检查所有可能的凭证格式
-    for (const format of credentialFormats) {
-        if (usersData[format]) {
-            validUser = usersData[format];
-            break;
-        }
-    }
-    
-    if (validUser) {
-        // 宽松的用户名匹配（不区分大小写）
-        if (validUser.name.toLowerCase() === currentLoginUsername.toLowerCase()) {
-            currentUser = validUser;
-            addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
-            addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
-        } else {
-            addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${currentLoginUsername}, Found: ${validUser.name}</div>`);
-        }
-    } else {
-        addOutput('<div class="error">ERROR: Invalid credentials</div>');
-    }
-    
-    currentLoginUsername = null;
-    awaitingCredentials = false;
-}
 
 // 帮助命令
 function handleHelp() {
