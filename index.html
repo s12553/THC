@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCP-Foundation Terminal Access System</title>
+    <title>SCP Foundation Terminal Access System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -434,171 +434,117 @@
     <script src="datearticles.js"></script>
     <script src="commandssync.js"></script>
 
-    <script>
-        // 全局状态
-        let currentUser = null;
-        let contentData = { articles: {} };
-        let usersData = {};
-        let pendingAction = null;
-        let currentLoginUsername = null;
-        let awaitingCredentials = false;
-        
-        // 更新当前时间
-        function updateCurrentTime() {
-            const now = new Date();
-            document.getElementById('current-time').textContent = 
-                `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-        }
-        
-        // 添加输出到终端
-        function addOutput(text, isCommand = false) {
-            const outputDiv = document.getElementById('output');
-            const line = document.createElement('div');
-            line.className = 'output-line';
-            
-            if (isCommand) {
-                line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
-            } else {
-                line.innerHTML = text;
-            }
-            
-            outputDiv.appendChild(line);
-            outputDiv.scrollTop = outputDiv.scrollHeight;
-        }
-        
-        // 显示权限警告
-        function showPermissionWarning(requiredLevel) {
-            const outputDiv = document.getElementById('output');
-            const warning = document.createElement('div');
-            warning.className = 'permission-warning';
-            warning.innerHTML = `
-                <div class="access-denied">
-                    <h2>ACCESS DENIED</h2>
-                    <p>Warning: Insufficient clearance level</p>
-                    <p>Required clearance: Level ${requiredLevel}+</p>
-                    <p>Your clearance: Level ${currentUser?.level || 0}</p>
-                </div>
-                <p>Contact site administrator or O5 Council for access upgrade</p>
-            `;
-            outputDiv.appendChild(warning);
-            outputDiv.scrollTop = outputDiv.scrollHeight;
-        }
-        
-        // 初始化数据
-        function initData() {
+<script>
+    // 全局状态
+    let currentUser = null;
+    let contentData = { articles: {} };
+    let usersData = {};
+    let pendingAction = null;
+    let currentLoginUsername = null;
+    let awaitingCredentials = false;
+    
+    // 初始化数据
+    function initData() {
+        try {
             // 加载人员数据
             usersData = loadPersonnelData();
+            console.log("Loaded personnel data:", Object.keys(usersData));
             
             // 加载文章数据
             contentData = loadArticlesData();
+            console.log("Loaded articles data:", Object.keys(contentData.articles));
             
-            // 保存到localStorage（如果不存在）
+            // 初始化本地存储
             if (!localStorage.getItem('contentData')) {
                 localStorage.setItem('contentData', JSON.stringify(contentData));
             }
-            
             if (!localStorage.getItem('usersData')) {
                 localStorage.setItem('usersData', JSON.stringify(usersData));
             }
             
-            // 从localStorage加载数据
-            try {
-                const savedContent = localStorage.getItem('contentData');
-                if (savedContent) {
-                    contentData = JSON.parse(savedContent);
-                }
-                
-                const savedUsers = localStorage.getItem('usersData');
-                if (savedUsers) {
-                    usersData = JSON.parse(savedUsers);
-                }
-            } catch (e) {
-                console.error("Error loading data:", e);
-                addOutput('<div class="error">Database corruption detected. Restoring defaults...</div>');
-                contentData = loadArticlesData();
-                usersData = loadPersonnelData();
-                saveDataToLocal();
-            }
+            // 加载本地存储数据
+            const savedContent = localStorage.getItem('contentData');
+            if (savedContent) contentData = JSON.parse(savedContent);
+            
+            const savedUsers = localStorage.getItem('usersData');
+            if (savedUsers) usersData = JSON.parse(savedUsers);
+        } catch (e) {
+            console.error("Data initialization error:", e);
+            addOutput('<div class="error">Database initialization failed. Restoring defaults...</div>');
+            contentData = loadArticlesData();
+            usersData = loadPersonnelData();
         }
+    }
+
+    // 初始化终端
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化数据
+        initData();
         
-        // 保存数据到本地存储
-        function saveDataToLocal() {
-            localStorage.setItem('contentData', JSON.stringify(contentData));
-            localStorage.setItem('usersData', JSON.stringify(usersData));
-        }
+        // 设置输入处理
+        const inputField = document.getElementById('input-field');
         
-        // 初始化终端
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化数据
-            initData();
-            
-            // 更新时间
-            updateCurrentTime();
-            setInterval(updateCurrentTime, 1000);
-            
-            // 设置系统时间显示
-            const now = new Date();
-            const options = { hour: 'numeric', minute: 'numeric', weekday: 'long', month: 'long', day: 'numeric' };
-            document.getElementById('system-time').textContent = now.toLocaleDateString('en-US', options);
-            
-            const inputField = document.getElementById('input-field');
-            
-            function handleInput(e) {
-                if (e.key === 'Enter') {
-                    const command = inputField.value.trim();
-                    if (command) {
-                        console.log("Input received:", command, 
-                                  "Awaiting credentials:", awaitingCredentials, 
-                                  "Pending action:", !!pendingAction);
-                        
-                        // 处理Y/N确认
-                        if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
-                            pendingAction(command.toLowerCase() === 'y');
-                            pendingAction = null;
-                        } 
-                        // 处理凭证输入
-                        else if (awaitingCredentials) {
-                            handleCredentialInput(command);
-                        }
-                        // 处理普通命令
-                        else {
-                            handleCommand(command);
-                        }
-                        inputField.value = '';
+        inputField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const command = inputField.value.trim();
+                if (command) {
+                    console.log("Command input:", command, 
+                              "Awaiting credentials:", awaitingCredentials, 
+                              "Pending action:", !!pendingAction);
+                    
+                    if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
+                        pendingAction(command.toLowerCase() === 'y');
+                        pendingAction = null;
+                    } 
+                    else if (awaitingCredentials) {
+                        handleCredentialInput(command);
                     }
+                    else {
+                        // 使用统一的命令处理入口
+                        handleCommand(command);
+                    }
+                    inputField.value = '';
                 }
             }
-            
-            inputField.addEventListener('keydown', handleInput);
-            inputField.focus();
         });
         
-        // 全局可访问的命令处理函数
-        window.handleCommand = function(command) {
-            addOutput(command, true);
-            
-            // 特殊处理 login 命令（无论是否认证）
-            if (command.toLowerCase().startsWith('login')) {
-                handleUnauthenticated(command);
-                return;
-            }
-            
-            // 其他命令需要认证
-            if (!currentUser) {
-                addOutput('<div class="error">ERROR: Please login first</div>');
-                return;
-            }
-            
-            const parts = command.split(' ');
-            const cmd = parts[0].toLowerCase();
-            
-            if (window.commandHandlers?.[cmd]) {
-                window.commandHandlers[cmd](parts);
-            } else {
-                addOutput('<div class="error">ERROR: Unknown command</div>');
-                addOutput('<div>Type HELP for available commands</div>');
-            }
-        };
-    </script>
+        inputField.focus();
+    });
+    
+    // 核心命令处理入口
+    function handleCommand(command) {
+        // 特殊处理未认证状态
+        if (!currentUser && command.toLowerCase().startsWith('login')) {
+            handleUnauthenticated(command);
+            return;
+        }
+        
+        // 确保命令处理器可用
+        if (!window.commandHandlers) {
+            console.error("Command handlers not available!");
+            addOutput('<div class="error">SYSTEM ERROR: Command processors offline</div>');
+            return;
+        }
+        
+        const parts = command.split(' ');
+        const cmd = parts[0].toLowerCase();
+        
+        // 调试信息
+        console.log("Executing command:", cmd, "from:", command);
+        console.log("Available handlers:", Object.keys(window.commandHandlers));
+        
+        if (typeof window.commandHandlers[cmd] === 'function') {
+            window.commandHandlers[cmd](parts);
+        } else {
+            addOutput('<div class="error">ERROR: Unknown command</div>');
+            addOutput('<div>Type HELP for available commands</div>');
+        }
+    }
+    
+    // 暴露核心函数到全局
+    window.handleCommand = handleCommand;
+    window.handleCredentialInput = handleCredentialInput;
+    window.handleUnauthenticated = handleUnauthenticated;
+</script>
 </body>
 </html>
