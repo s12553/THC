@@ -477,4 +477,7 @@ function handleSync(parts) {
     } else {
         addOutput('<div class="error">ERROR: Invalid sync action. Use UPLOAD or DOWNLOAD</div>');
     }
+    // 显式暴露命令处理器到全局作用域
+    window.commandHandlers = commandHandlers;
+    window.handleCommand = handleCommand; // 可选，确保统一入口
 }
