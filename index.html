@@ -609,6 +609,10 @@
         // 替换原来的 handleCommand 函数
         window.handleCommand = function(command) {
             addOutput(command, true);
+    
+    // 调试输出当前可用的命令列表
+            console.log("Available commands:", Object.keys(window.commandHandlers || {}));
+    
             if (!currentUser) {
                 handleUnauthenticated(command);
                 return;
@@ -617,8 +621,8 @@
             const parts = command.split(' ');
             const cmd = parts[0].toLowerCase();
     
-            if (window.commandHandlers && window.commandHandlers[cmd]) {
-                window.commandHandlers[cmd](parts);
+            if (window.commandHandlers?.[cmd]) {
+                window.commandHandlers[cmd](parts); // 调用对应处理函数
             } else {
                 addOutput('<div class="error">ERROR: Unknown command</div>');
                 addOutput('<div>Type HELP for available commands</div>');
