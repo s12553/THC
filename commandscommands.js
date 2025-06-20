@@ -38,8 +38,8 @@ function handleCommand(command) {
 
 // 未认证状态处理
 function handleUnauthenticated(command) {
-    // 支持 ":" 分隔符的命令格式
-    command = command.replace(':', ' ');
+    console.log('Received command:', command); // 调试输出
+    command = command.replace(':', ' '); // 替换 ":" 为空格
     const parts = command.split(' ');
     const cmd = parts[0].toLowerCase();
     
@@ -51,6 +51,7 @@ function handleUnauthenticated(command) {
         }
         
         currentLoginUsername = parts.slice(1).join(' ');
+        console.log('Parsed username:', currentLoginUsername); // 调试输出
         awaitingCredentials = true;
         addOutput('<div class="login-prompt">Enter credentials (username | password):</div>');
     } else {
@@ -60,18 +61,26 @@ function handleUnauthenticated(command) {
 }
 
 function handleCredentialInput(credentials) {
-    const userRecord = usersData[credentials];
+    console.log('Received credentials:', credentials); // 调试输出
+    credentials = credentials.trim();
     
-    if (userRecord && userRecord.name === currentLoginUsername) {
-        currentUser = userRecord;
+    const [username, password] = credentials.split('|').map(part => part.trim());
+    const fullCredentials = `${username} | ${password}`;
+    console.log('Constructed full credentials:', fullCredentials); // 调试输出
+    
+    if (usersData[fullCredentials] && usersData[fullCredentials].name === currentLoginUsername) {
+        currentUser = usersData[fullCredentials];
+        console.log('Login successful for user:', currentUser.name); // 调试输出
         addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
         addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
     } else {
+        console.log('Login failed for credentials:', fullCredentials); // 调试输出
         addOutput('<div class="error">ERROR: Invalid credentials</div>');
     }
     currentLoginUsername = null;
     awaitingCredentials = false;
 }
+
 // 帮助命令
 function handleHelp() {
     let helpText = '<div class="system-info">Available commands:<br>';
