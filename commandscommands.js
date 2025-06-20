@@ -58,22 +58,49 @@ function handleUnauthenticated(command) {
 }
 
 function handleCredentialInput(credentials) {
-    console.log('Received credentials:', credentials); // 调试输出
     credentials = credentials.trim();
     
-    const [username, password] = credentials.split('|').map(part => part.trim());
-    const fullCredentials = `${username} | ${password}`;
-    console.log('Constructed full credentials:', fullCredentials); // 调试输出
+    // 更灵活地分割用户名和密码
+    const separatorIndex = credentials.indexOf('|');
+    if (separatorIndex === -1) {
+        addOutput('<div class="error">ERROR: Invalid credential format. Use: username | password</div>');
+        awaitingCredentials = false;
+        return;
+    }
     
-    if (usersData[fullCredentials] && usersData[fullCredentials].name === currentLoginUsername) {
-        currentUser = usersData[fullCredentials];
-        console.log('Login successful for user:', currentUser.name); // 调试输出
-        addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
-        addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
+    const username = credentials.substring(0, separatorIndex).trim();
+    const password = credentials.substring(separatorIndex + 1).trim();
+    
+    // 构造三种可能的凭证格式
+    const credentialFormats = [
+        `${username}|${password}`,       // 无空格
+        `${username} | ${password}`,     // 带空格
+        `${username}| ${password}`       // 混合
+    ];
+    
+    let validUser = null;
+    
+    // 检查所有可能的凭证格式
+    for (const format of credentialFormats) {
+        if (usersData[format]) {
+            validUser = usersData[format];
+            break;
+        }
+    }
+    
+    if (validUser) {
+        // 宽松的用户名匹配（不区分大小写）
+        if (validUser.name.toLowerCase() === currentLoginUsername.toLowerCase()) {
+            currentUser = validUser;
+            addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+            addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
+        } else {
+            addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${currentLoginUsername}, Found: ${validUser.name}</div>`);
+        }
     } else {
-        console.log('Login failed for credentials:', fullCredentials); // 调试输出
         addOutput('<div class="error">ERROR: Invalid credentials</div>');
     }
+    
     currentLoginUsername = null;
     awaitingCredentials = false;
 }
