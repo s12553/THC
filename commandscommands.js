@@ -38,20 +38,17 @@ function handleCommand(command) {
 
 // 未认证状态处理
 function handleUnauthenticated(command) {
-    console.log('Received command:', command); // 调试输出
-    command = command.replace(':', ' '); // 替换 ":" 为空格
-    const parts = command.split(' ');
+    // 替换所有冒号为空格
+    command = command.replace(/:/g, ' ');
+    const parts = command.split(' ').filter(part => part !== '');
     const cmd = parts[0].toLowerCase();
     
     if (cmd === 'login') {
         if (parts.length < 2) {
             addOutput('<div class="error">ERROR: Missing username</div>');
-            addOutput('<div>Usage: LOGIN [USERNAME]</div>');
             return;
         }
-        
         currentLoginUsername = parts.slice(1).join(' ');
-        console.log('Parsed username:', currentLoginUsername); // 调试输出
         awaitingCredentials = true;
         addOutput('<div class="login-prompt">Enter credentials (username | password):</div>');
     } else {
