@@ -583,18 +583,17 @@
         });
         
         // 全局可访问的命令处理函数
+        // 替换原来的 handleCommand 函数
         window.handleCommand = function(command) {
             addOutput(command, true);
-            
-            if (!currentUser && !command.toLowerCase().startsWith('login')) {
-                addOutput('<div class="error">ERROR: You must log in first</div>');
-                addOutput('<div>Type LOGIN [USERNAME] to begin authentication</div>');
+            if (!currentUser) {
+                handleUnauthenticated(command);
                 return;
             }
-            
+    
             const parts = command.split(' ');
             const cmd = parts[0].toLowerCase();
-            
+    
             if (window.commandHandlers && window.commandHandlers[cmd]) {
                 window.commandHandlers[cmd](parts);
             } else {
