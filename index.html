@@ -529,15 +529,38 @@
         
         // 处理凭证输入
         function handleCredentialInput(credentials) {
-            if (usersData[credentials] && usersData[credentials].name === currentLoginUsername) {
-                currentUser = usersData[credentials];
-                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
-                addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
-            } else {
-                addOutput('<div class="error">ERROR: Invalid credentials</div>');
+            credentials = credentials.trim();
+    
+    // 检查格式是否为 "username | password"
+            if (!credentials.includes('|')) {
+                addOutput('<div class="error">ERROR: Format must be: username | password</div>');
+                awaitingCredentials = false;
+                return;
             }
-            currentLoginUsername = null;
+
+            const [inputUsername, inputPassword] = credentials.split('|').map(s => s.trim());
+            const fullCredentials = `${inputUsername} | ${inputPassword}`;
+
+    // 严格检查凭证是否存在
+            if (!usersData[fullCredentials]) {
+                addOutput('<div class="error">ERROR: Invalid credentials</div>');
+                awaitingCredentials = false;
+                return;
+            }
+
+    // 检查用户名是否匹配
+            const user = usersData[fullCredentials];
+            if (user.name.toLowerCase() !== currentLoginUsername.toLowerCase()) {
+                addOutput(`<div class="error">ERROR: Username mismatch (expected: ${currentLoginUsername})</div>`);
+                awaitingCredentials = false;
+                return;
+            }
+
+    // 登录成功
+            currentUser = user;
+            addOutput(`<div class="success">User authenticated: ${user.name}</div>`);
             awaitingCredentials = false;
+            currentLoginUsername = null;
         }
         
         // 初始化终端
