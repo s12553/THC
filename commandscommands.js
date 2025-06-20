@@ -1,5 +1,3 @@
-
-
 // 命令处理函数映射
 const commandHandlers = {
     help: handleHelp,
@@ -16,6 +14,9 @@ const commandHandlers = {
     search: handleSearch,
     setlevel: handleSetLevel
 };
+
+// 暴露命令处理器到全局作用域
+window.commandHandlers = commandHandlers;
 
 // 处理命令
 function handleCommand(command) {
@@ -38,24 +39,81 @@ function handleCommand(command) {
 
 // 未认证状态处理
 function handleUnauthenticated(command) {
-    // 替换所有冒号为空格（兼容 login:username 格式）
-    command = command.replace(/:/g, ' ').trim();
-    const parts = command.split(/\s+/); // 按任意空白字符分割
+    console.log("Processing unauthenticated command:", command);
+    
+    // 替换所有冒号为空格
+    command = command.replace(/:/g, ' ');
+    const parts = command.split(' ').filter(part => part !== '');
     const cmd = parts[0].toLowerCase();
-
+    
     if (cmd === 'login') {
         if (parts.length < 2) {
-            addOutput('<div class="error">ERROR: Usage: LOGIN [USERNAME]</div>');
+            addOutput('<div class="error">ERROR: Missing username</div>');
             return;
         }
-        currentLoginUsername = parts.slice(1).join(' '); // 合并剩余部分作为用户名
+        currentLoginUsername = parts.slice(1).join(' ');
         awaitingCredentials = true;
         addOutput('<div class="login-prompt">Enter credentials (username | password):</div>');
     } else {
-        addOutput('<div class="error">ERROR: Available commands: LOGIN [USERNAME]</div>');
+        addOutput('<div class="error">ERROR: Invalid command</div>');
+        addOutput('<div>Available commands: LOGIN [USERNAME]</div>');
     }
 }
-    
+
+function handleCredentialInput(credentials) {
+    try {
+        console.log("Handling credentials:", credentials);
+        credentials = credentials.trim();
+        
+        // 更灵活地分割用户名和密码
+        const separatorIndex = credentials.indexOf('|');
+        if (separatorIndex === -1) {
+            addOutput('<div class="error">ERROR: Format must be: username | password</div>');
+            awaitingCredentials = false;
+            return;
+        }
+
+        const username = credentials.substring(0, separatorIndex).trim();
+        const password = credentials.substring(separatorIndex + 1).trim();
+        
+        // 构造可能的凭证格式
+        const credentialFormats = [
+            `${username}|${password}`,
+            `${username} | ${password}`,
+            `${username}| ${password}`
+        ];
+        
+        let validUser = null;
+        
+        // 检查所有可能的凭证格式
+        for (const format of credentialFormats) {
+            if (usersData[format]) {
+                validUser = usersData[format];
+                break;
+            }
+        }
+        
+        if (validUser) {
+            // 宽松的用户名匹配
+            if (validUser.name.toLowerCase() === currentLoginUsername.toLowerCase()) {
+                currentUser = validUser;
+                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+                addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
+            } else {
+                addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${currentLoginUsername}, Found: ${validUser.name}</div>`);
+            }
+        } else {
+            addOutput('<div class="error">ERROR: Invalid credentials</div>');
+        }
+    } catch (error) {
+        console.error("Credential processing error:", error);
+        addOutput('<div class="error">SYSTEM ERROR: Credential processing failed</div>');
+    } finally {
+        // 确保状态重置
+        currentLoginUsername = null;
+        awaitingCredentials = false;
+    }
+}
 
 // 帮助命令
 function handleHelp() {
@@ -477,7 +535,4 @@ function handleSync(parts) {
     } else {
         addOutput('<div class="error">ERROR: Invalid sync action. Use UPLOAD or DOWNLOAD</div>');
     }
-    // 显式暴露命令处理器到全局作用域
-    window.commandHandlers = commandHandlers;
-    window.handleCommand = handleCommand; // 可选，确保统一入口
 }
