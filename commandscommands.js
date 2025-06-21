@@ -1,3 +1,6 @@
+// 导入同步功能
+import { handleSyncUpload, handleSyncDownload } from './commandssync.js';
+
 // 命令处理函数映射
 const commandHandlers = {
     help: handleHelp,
@@ -22,8 +25,8 @@ if (typeof window !== 'undefined') {
     Object.assign(window.commandHandlers, commandHandlers);
     console.log("Command handlers registered:", Object.keys(commandHandlers));
 }
-// 核心命令处理函数
 
+// 核心命令处理函数
 
 // 未认证状态处理
 function handleUnauthenticated(command) {
@@ -71,8 +74,12 @@ function handleCredentialInput(credentials) {
         if (usersData[credentialKey]) {
             const user = usersData[credentialKey];
             
-            // 验证用户名匹配
-            if (user.name.toLowerCase() === currentLoginUsername.toLowerCase()) {
+            // 更灵活的用户名匹配
+            const normalizedInput = currentLoginUsername.toLowerCase().replace(/\s+/g, '-');
+            const normalizedUser = user.name.toLowerCase().replace(/\s+/g, '-');
+
+            if (normalizedUser.includes(normalizedInput) || 
+                normalizedInput.includes(normalizedUser)) {
                 currentUser = user;
                 addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
                 addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
@@ -158,9 +165,6 @@ function handleAccess(parts) {
     }
 }
 
-// 其他命令实现保持不变（logout, clear, list等）...
-// 注意：此处应包含所有其他命令的实现，但为简洁起见省略
-
 // 登出
 function handleLogout() {
     addOutput(`<div class="success">User ${currentUser.name} logged out</div>`);
@@ -183,7 +187,7 @@ function handleClear() {
 }
 
 // 添加文档
-function handleAdd(parts) {
+function handleAdd(rawCommand, parts) {
     if (parts[1]?.toLowerCase() !== 'access') {
         addOutput('<div class="error">ERROR: Invalid ADD command</div>');
         return;
@@ -209,18 +213,18 @@ function handleAdd(parts) {
     }
     
     // 提取标题和内容
-    const titleStart = command.indexOf('"');
-    const titleEnd = command.indexOf('"', titleStart + 1);
-    const contentStart = command.indexOf('"', titleEnd + 1);
-    const contentEnd = command.indexOf('"', contentStart + 1);
+    const titleStart = rawCommand.indexOf('"');
+    const titleEnd = rawCommand.indexOf('"', titleStart + 1);
+    const contentStart = rawCommand.indexOf('"', titleEnd + 1);
+    const contentEnd = rawCommand.indexOf('"', contentStart + 1);
     
     if (titleStart === -1 || titleEnd === -1 || contentStart === -1 || contentEnd === -1) {
         addOutput('<div class="error">ERROR: Invalid format. Make sure title and content are in double quotes</div>');
         return;
     }
     
-    const title = command.substring(titleStart + 1, titleEnd);
-    const content = command.substring(contentStart + 1, contentEnd);
+    const title = rawCommand.substring(titleStart + 1, titleEnd);
+    const content = rawCommand.substring(contentStart + 1, contentEnd);
     
     // 创建新文档
     contentData.articles[articleId] = {
@@ -392,6 +396,7 @@ function handleSearch(parts) {
 
 // 搜索标记
 function searchMarks(markTerm) {
+    const lowerMark = markTerm.toLowerCase();
     const results = [];
     
     for (const id in contentData.articles) {
@@ -399,7 +404,8 @@ function searchMarks(markTerm) {
         
         if (currentUser.level < article.minLevel) continue;
         
-        if (article.marks && article.marks.some(m => m.toLowerCase().includes(markTerm))) {
+        if (article.marks && article.marks.some(m => 
+            m.toLowerCase().includes(lowerMark))) {
             results.push({
                 id: id,
                 article: article,
@@ -453,12 +459,14 @@ function displaySearchResults(results, term, isMarkSearch = false) {
         const result = results[0];
         const searchType = isMarkSearch ? 'mark' : 'keyword';
         addOutput(`<div class="search-results">1 result matching the ${searchType} "${term}" was found in the Chinese branch database:</div>`);
-        addOutput(`
-            <div class="search-item">
-                <strong>SCP-${result.id}</strong>: ${highlightMatches(result.article.title, term)}
-                ${result.article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join('')}
-            </div>
-        `);
+        
+        addOutput(
+            `<div class="search-item">` +
+            `<strong>SCP-${result.id}</strong>: ${highlightMatches(result.article.title, term)} ` +
+            `${result.article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join('')}` +
+            `</div>`
+        );
+        
         addOutput('<div class="search-confirm">Do you want to access the document (Y/N)?</div>');
         
         pendingAction = (confirmed) => {
@@ -474,12 +482,12 @@ function displaySearchResults(results, term, isMarkSearch = false) {
     addOutput(`<div class="search-results">${results.length} results matching the ${isMarkSearch ? 'mark' : 'keyword'} "${term}" were found in the Chinese branch database:</div>`);
     
     results.forEach(result => {
-        addOutput(`
-            <div class="search-item">
-                <strong>SCP-${result.id}</strong>: ${highlightMatches(result.article.title, term)}
-                ${result.article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join('')}
-            </div>
-        `);
+        addOutput(
+            `<div class="search-item">` +
+            `<strong>SCP-${result.id}</strong>: ${highlightMatches(result.article.title, term)} ` +
+            `${result.article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join('')}` +
+            `</div>`
+        );
     });
 }
 
