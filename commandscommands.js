@@ -26,7 +26,13 @@ if (typeof window !== 'undefined') {
     console.log("Command handlers registered:", Object.keys(commandHandlers));
 }
 
-// 核心命令处理函数
+// 全局状态引用
+const currentUser = window.currentUser || null;
+const contentData = window.contentData || { articles: {} };
+const usersData = window.usersData || {};
+let pendingAction = window.pendingAction || null;
+let currentLoginUsername = window.currentLoginUsername || null;
+let awaitingCredentials = window.awaitingCredentials || false;
 
 // 未认证状态处理
 function handleUnauthenticated(command) {
@@ -42,8 +48,8 @@ function handleUnauthenticated(command) {
             addOutput('<div class="error">ERROR: Missing username</div>');
             return;
         }
-        currentLoginUsername = parts.slice(1).join(' ');
-        awaitingCredentials = true;
+        window.currentLoginUsername = parts.slice(1).join(' ');
+        window.awaitingCredentials = true;
         addOutput('<div class="login-prompt">Enter credentials (username | password):</div>');
     } else {
         addOutput('<div class="error">ERROR: Invalid command</div>');
@@ -60,7 +66,7 @@ function handleCredentialInput(credentials) {
         // 验证格式
         if (!credentials.includes('|')) {
             addOutput('<div class="error">ERROR: Format must be: username | password</div>');
-            awaitingCredentials = false;
+            window.awaitingCredentials = false;
             return;
         }
 
@@ -75,16 +81,16 @@ function handleCredentialInput(credentials) {
             const user = usersData[credentialKey];
             
             // 更灵活的用户名匹配
-            const normalizedInput = currentLoginUsername.toLowerCase().replace(/\s+/g, '-');
+            const normalizedInput = window.currentLoginUsername.toLowerCase().replace(/\s+/g, '-');
             const normalizedUser = user.name.toLowerCase().replace(/\s+/g, '-');
 
             if (normalizedUser.includes(normalizedInput) || 
                 normalizedInput.includes(normalizedUser)) {
-                currentUser = user;
-                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+                window.currentUser = user;
+                addOutput(`<div class="user-info">Credentials accepted. User: ${user.name}<br>Position: ${user.role}, ${user.site}<br>Clearance Level: ${user.level}</div>`);
                 addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
             } else {
-                addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${currentLoginUsername}, Found: ${user.name}</div>`);
+                addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${window.currentLoginUsername}, Found: ${user.name}</div>`);
             }
         } else {
             addOutput('<div class="error">ERROR: Invalid credentials</div>');
@@ -94,8 +100,8 @@ function handleCredentialInput(credentials) {
         addOutput('<div class="error">SYSTEM ERROR: Credential processing failed</div>');
     } finally {
         // 重置状态
-        currentLoginUsername = null;
-        awaitingCredentials = false;
+        window.currentLoginUsername = null;
+        window.awaitingCredentials = false;
     }
 }
 
@@ -110,13 +116,13 @@ function handleHelp(rawCommand, parts) {
     helpText += 'CLEAR - Clear terminal screen<br>';
     helpText += 'HELP - Show command information<br>';
     
-    if (currentUser?.level >= 2) {
+    if (window.currentUser?.level >= 2) {
         helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
         helpText += 'ADD ACCESS - Add new SCP document<br>';
         helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
     }
     
-    if (currentUser?.isO5) {
+    if (window.currentUser?.isO5) {
         helpText += '<span class="admin-only">O5 COMMANDS:<br>';
         helpText += 'MARK [SCP-NUMBER] [MARK] - Add mark to SCP<br>';
         helpText += 'SETLEVEL [SCP-NUMBER] [LEVEL] - Set access level<br>';
@@ -125,7 +131,7 @@ function handleHelp(rawCommand, parts) {
     }
     
     helpText += '<br>SYNC COMMANDS:<br>';
-    helpText += 'SYNC UPLOAD [USER/REPO] [TOKEN] - Upload data to GitHub<br>';
+    helpText += 'SY极 UPLOAD [USER/REPO] [TOKEN] - Upload data to GitHub<br>';
     helpText += 'SYNC DOWNLOAD [USER/REPO] [TOKEN] - Download data from GitHub<br>';
     helpText += '</div>';
     
@@ -144,18 +150,18 @@ function handleAccess(rawCommand, parts) {
     const articleId = parts[1];
     console.log("Requesting SCP:", articleId);
     
-    if (!contentData.articles[articleId]) {
+    if (!window.contentData.articles[article极]) {
         addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
         return;
     }
     
-    const article = contentData.articles[articleId];
-    if (currentUser.level < article.minLevel) {
+    const article = window.contentData.articles[articleId];
+    if (window.currentUser.level < article.minLevel) {
         showPermissionWarning(article.minLevel);
         return;
     }
     
-    addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
+    addOutput(`<div class="user-info">User: ${window.currentUser.name}<br>Position: ${window.currentUser.role}, ${window.currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${window.currentUser.level}">Level ${window.currentUser.level}</span></div>`);
     addOutput('<hr>');
     addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
     addOutput(`<div class="scp-item">${article.content.replace(/\n/g, '<br>')}</div>`);
@@ -167,8 +173,8 @@ function handleAccess(rawCommand, parts) {
 
 // 登出
 function handleLogout(rawCommand, parts) {
-    addOutput(`<div class="success">User ${currentUser.name} logged out</div>`);
-    currentUser = null;
+    addOutput(`<div class="success">User ${window.currentUser.name} logged out</div>`);
+    window.currentUser = null;
     addOutput('<div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>');
 }
 
@@ -178,8 +184,8 @@ function handleClear(rawCommand, parts) {
     outputDiv.innerHTML = '';
     addOutput('<div class="output-line">SCP Foundation Terminal Access System</div>');
     
-    if (currentUser) {
-        addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
+    if (window.currentUser) {
+        addOutput(`<div class="user-info">User: ${window.currentUser.name}<br>Position: ${window.currentUser.role}, ${window.currentUser.site}<br>Clearance Level: ${window.currentUser.level}</div>`);
         addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
     } else {
         addOutput('<div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>');
@@ -189,11 +195,11 @@ function handleClear(rawCommand, parts) {
 // 添加文档
 function handleAdd(rawCommand, parts) {
     if (parts[1]?.toLowerCase() !== 'access') {
-        addOutput('<div class="error">ERROR: Invalid ADD command</div>');
+        addOutput('<极 class="error">ERROR: Invalid ADD command</div>');
         return;
     }
     
-    if (currentUser.level < 2) {
+    if (window.currentUser.level < 2) {
         addOutput('<div class="error">ERROR: Requires Level 2+ privileges</div>');
         return;
     }
@@ -227,7 +233,7 @@ function handleAdd(rawCommand, parts) {
     const content = rawCommand.substring(contentStart + 1, contentEnd);
     
     // 创建新文档
-    contentData.articles[articleId] = {
+    window.contentData.articles[articleId] = {
         title: title,
         minLevel: minLevel,
         content: content,
@@ -236,7 +242,7 @@ function handleAdd(rawCommand, parts) {
     };
     
     // 保存到本地存储
-    localStorage.setItem('contentData', JSON.stringify(contentData));
+    localStorage.setItem('contentData', JSON.stringify(window.contentData));
     
     addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
 }
@@ -249,9 +255,9 @@ function handleList(rawCommand, parts) {
     }
     
     addOutput('<div class="system-info">Available documents:</div>');
-    for (const id in contentData.articles) {
-        const article = contentData.articles[id];
-        if (currentUser.level >= article.minLevel) {
+    for (const id in window.contentData.articles) {
+        const article = window.contentData.articles[id];
+        if (window.currentUser.level >= article.minLevel) {
             addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel}) ${article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join(' ')}</div>`);
         }
     }
@@ -259,7 +265,7 @@ function handleList(rawCommand, parts) {
 
 // O5命令：添加标记
 function handleMark(rawCommand, parts) {
-    if (!currentUser?.isO5) {
+    if (!window.currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
     }
@@ -273,18 +279,18 @@ function handleMark(rawCommand, parts) {
     const scpNumber = parts[1];
     const newMark = parts[2];
     
-    if (!contentData.articles[scpNumber]) {
+    if (!window.contentData.articles[scpNumber]) {
         addOutput(`<div class="error">ERROR: SCP-${scpNumber} not found</div>`);
         return;
     }
     
-    if (!contentData.articles[scpNumber].marks) {
-        contentData.articles[scpNumber].marks = [];
+    if (!window.contentData.articles[scpNumber].marks) {
+        window.contentData.articles[scpNumber].marks = [];
     }
     
-    if (!contentData.articles[scpNumber].marks.includes(newMark)) {
-        contentData.articles[scpNumber].marks.push(newMark);
-        localStorage.setItem('contentData', JSON.stringify(contentData));
+    if (!window.contentData.articles[scpNumber].marks.includes(newMark)) {
+        window.contentData.articles[scpNumber].marks.push(newMark);
+        localStorage.setItem('contentData', JSON.stringify(window.contentData));
         addOutput(`<div class="success">Mark "${newMark}" added to SCP-${scpNumber}</div>`);
     } else {
         addOutput(`<div class="error">ERROR: Mark "${newMark}" already exists on SCP-${scpNumber}</div>`);
@@ -293,7 +299,7 @@ function handleMark(rawCommand, parts) {
 
 // O5命令：设置权限等级
 function handleSetLevel(rawCommand, parts) {
-    if (!currentUser?.isO5) {
+    if (!window.currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
     }
@@ -307,7 +313,7 @@ function handleSetLevel(rawCommand, parts) {
     const scpNumber = parts[1];
     const newLevel = parseInt(parts[2]);
     
-    if (!contentData.articles[scpNumber]) {
+    if (!window.contentData.articles[scpNumber]) {
         addOutput(`<div class="error">ERROR: SCP-${scpNumber} not found</div>`);
         return;
     }
@@ -317,14 +323,14 @@ function handleSetLevel(rawCommand, parts) {
         return;
     }
     
-    contentData.articles[scpNumber].minLevel = newLevel;
-    localStorage.setItem('contentData', JSON.stringify(contentData));
+    window.contentData.articles[scpNumber].minLevel = newLevel;
+    localStorage.setItem('contentData', JSON.stringify(window.contentData));
     addOutput(`<div class="success">SCP-${scpNumber} access level set to ${newLevel}</div>`);
 }
 
 // O5命令：搜索状态
 function handleSearchStatus(rawCommand, parts) {
-    if (!currentUser?.isO5) {
+    if (!window.currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
     }
@@ -340,7 +346,7 @@ function handleSearchStatus(rawCommand, parts) {
         addOutput('<div class="status-list">Found 6 related items:</div>');
         addOutput('<div class="status-item">SCP-d$gaa0 <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
         addOutput('<div class="status-item">SCP-Ou+os^b-RU <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
-        addOutput('<div class="status-item">SCP-auoâb-DE <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
+        addOutput('<div class="status-item">SCP-auoâb-DE <span class="status-neutralized">极: Successfully Neutralized</span></div>');
         addOutput('<div class="status-item">SCP-$uroois-FR <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
         addOutput('<div class="status-item">SCP-ifiaâ-JP <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
         addOutput('<div class="status-item">SCP-CN-2000 <span class="status-located">Status: Located</span></div>');
@@ -349,7 +355,7 @@ function handleSearchStatus(rawCommand, parts) {
 
 // O5命令：邮箱
 function handleMailbox(rawCommand, parts) {
-    if (!currentUser?.isO5) {
+    if (!window.currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
     }
@@ -399,10 +405,10 @@ function searchMarks(markTerm) {
     const lowerMark = markTerm.toLowerCase();
     const results = [];
     
-    for (const id in contentData.articles) {
-        const article = contentData.articles[id];
+    for (const id in window.contentData.articles) {
+        const article = window.contentData.articles[id];
         
-        if (currentUser.level < article.minLevel) continue;
+        if (window.currentUser.level < article.minLevel) continue;
         
         if (article.marks && article.marks.some(m => 
             m.toLowerCase().includes(lowerMark))) {
@@ -421,11 +427,11 @@ function searchMarks(markTerm) {
 function performSearch(term) {
     const results = [];
     
-    for (const id in contentData.articles) {
-        const article = contentData.articles[id];
+    for (const id in window.contentData.articles) {
+        const article = window.contentData.articles[id];
         
         // 检查用户权限
-        if (currentUser.level < article.minLevel) continue;
+        if (window.currentUser.level < article.minLevel) continue;
         
         // 在标题、内容和标签中搜索
         const inTitle = article.title.toLowerCase().includes(term);
@@ -469,7 +475,7 @@ function displaySearchResults(results, term, isMarkSearch = false) {
         
         addOutput('<div class="search-confirm">Do you want to access the document (Y/N)?</div>');
         
-        pendingAction = (confirmed) => {
+        window.pendingAction = (confirmed) => {
             if (confirmed) {
                 handleAccess(['ACCESS', result.id]);
             } else {
