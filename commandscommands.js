@@ -1,30 +1,5 @@
-// 导入同步功能
-import { handleSyncUpload, handleSyncDownload } from './commandssync.js';
-
 // 命令处理函数映射
-const commandHandlers = {
-    help: handleHelp,
-    login: handleLogin,
-    access: handleAccess,
-    logout: handleLogout,
-    clear: handleClear,
-    add: handleAdd,
-    list: handleList,
-    mark: handleMark,
-    searchstatus: handleSearchStatus,
-    mailbox: handleMailbox,
-    sync: handleSync,
-    search: handleSearch,
-    setlevel: handleSetLevel
-};
-
-// 确保全局可用
-if (typeof window !== 'undefined') {
-    window.commandHandlers = window.commandHandlers || {};
-    // 合并命令处理器而不是覆盖
-    Object.assign(window.commandHandlers, commandHandlers);
-    console.log("Command handlers registered:", Object.keys(commandHandlers));
-}
+window.commandHandlers = window.commandHandlers || {};
 
 // 全局状态引用
 const currentUser = window.currentUser || null;
@@ -124,14 +99,14 @@ function handleHelp(rawCommand, parts) {
     
     if (window.currentUser?.isO5) {
         helpText += '<span class="admin-only">O5 COMMANDS:<br>';
-        helpText += 'MARK [SCP-NUMBER] [MARK] - Add mark to SCP<br>';
+        help极 += 'MARK [SCP-NUMBER] [MARK] - Add mark to SCP<br>';
         helpText += 'SETLEVEL [SCP-NUMBER] [LEVEL] - Set access level<br>';
         helpText += 'SEARCHSTATUS [MARKER] - Check item status<br>';
         helpText += 'MAILBOX CHECK-DRAFT [ID] - Access draft emails</span>';
     }
     
     helpText += '<br>SYNC COMMANDS:<br>';
-    helpText += 'SY极 UPLOAD [USER/REPO] [TOKEN] - Upload data to GitHub<br>';
+    helpText += 'SYNC UPLOAD [USER/REPO] [TOKEN] - Upload data to GitHub<br>';
     helpText += 'SYNC DOWNLOAD [USER/REPO] [TOKEN] - Download data from GitHub<br>';
     helpText += '</div>';
     
@@ -150,7 +125,7 @@ function handleAccess(rawCommand, parts) {
     const articleId = parts[1];
     console.log("Requesting SCP:", articleId);
     
-    if (!window.contentData.articles[article极]) {
+    if (!window.contentData.articles[articleId]) {
         addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
         return;
     }
@@ -195,7 +170,7 @@ function handleClear(rawCommand, parts) {
 // 添加文档
 function handleAdd(rawCommand, parts) {
     if (parts[1]?.toLowerCase() !== 'access') {
-        addOutput('<极 class="error">ERROR: Invalid ADD command</div>');
+        addOutput('<div class="error">ERROR: Invalid ADD command</div>');
         return;
     }
     
@@ -346,7 +321,7 @@ function handleSearchStatus(rawCommand, parts) {
         addOutput('<div class="status-list">Found 6 related items:</div>');
         addOutput('<div class="status-item">SCP-d$gaa0 <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
         addOutput('<div class="status-item">SCP-Ou+os^b-RU <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
-        addOutput('<div class="status-item">SCP-auoâb-DE <span class="status-neutralized">极: Successfully Neutralized</span></div>');
+        addOutput('<div class="status-item">SCP-auoâb-DE <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
         addOutput('<div class="status-item">SCP-$uroois-FR <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
         addOutput('<div class="status-item">SCP-ifiaâ-JP <span class="status-neutralized">Status: Successfully Neutralized</span></div>');
         addOutput('<div class="status-item">SCP-CN-2000 <span class="status-located">Status: Located</span></div>');
@@ -523,13 +498,28 @@ function handleSync(rawCommand, parts) {
     const token = parts[3];
     
     if (action === 'upload') {
-        handleSyncUpload(repo, token);
+        window.handleSyncUpload(repo, token);
     } else if (action === 'download') {
-        handleSyncDownload(repo, token);
+        window.handleSyncDownload(repo, token);
     } else {
         addOutput('<div class="error">ERROR: Invalid sync action. Use UPLOAD or DOWNLOAD</div>');
     }
 }
+
+// 注册命令处理器
+window.commandHandlers.help = handleHelp;
+window.commandHandlers.login = handleLogin;
+window.commandHandlers.access = handleAccess;
+window.commandHandlers.logout = handleLogout;
+window.commandHandlers.clear = handleClear;
+window.commandHandlers.add = handleAdd;
+window.commandHandlers.list = handleList;
+window.commandHandlers.mark = handleMark;
+window.commandHandlers.searchstatus = handleSearchStatus;
+window.commandHandlers.mailbox = handleMailbox;
+window.commandHandlers.sync = handleSync;
+window.commandHandlers.search = handleSearch;
+window.commandHandlers.setlevel = handleSetLevel;
 
 // 暴露必要的函数到全局
 window.handleCredentialInput = handleCredentialInput;
