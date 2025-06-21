@@ -17,39 +17,13 @@ const commandHandlers = {
 
 // 确保全局可用
 if (typeof window !== 'undefined') {
-    window.commandHandlers = commandHandlers;
+    window.commandHandlers = window.commandHandlers || {};
+    // 合并命令处理器而不是覆盖
+    Object.assign(window.commandHandlers, commandHandlers);
     console.log("Command handlers registered:", Object.keys(commandHandlers));
 }
-
 // 核心命令处理函数
-function handleCommand(command) {
-    console.log("Processing command:", command);
-    addOutput(command, true);
-    
-    // 特殊处理未认证状态
-    if (!currentUser && command.toLowerCase().startsWith('login')) {
-        handleUnauthenticated(command);
-        return;
-    }
-    
-    // 分割命令
-    const parts = command.split(' ');
-    const cmd = parts[0].toLowerCase();
-    
-    // 调试信息
-    console.log("Command after lowercase:", cmd);
-    console.log("Available handlers:", Object.keys(window.commandHandlers || {}));
-    
-    // 检查命令处理器
-    if (window.commandHandlers && typeof window.commandHandlers[cmd] === 'function') {
-        console.log("Handler found for:", cmd);
-        window.commandHandlers[cmd](parts);
-    } else {
-        console.warn("No handler for command:", cmd);
-        addOutput('<div class="error">ERROR: Unknown command</div>');
-        addOutput('<div>Type HELP for available commands</div>');
-    }
-}
+
 
 // 未认证状态处理
 function handleUnauthenticated(command) {
