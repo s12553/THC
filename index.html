@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCP-Foundation Terminal Access System</title>
+    <title>SCP Foundation Terminal Access System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -394,6 +394,7 @@
         }
     </style>
 </head>
+</head>
 <body>
     <div class="terminal-container">
         <div class="terminal-header">
@@ -436,12 +437,12 @@
 
     <script>
         // 全局状态
-        let currentUser = null;
-        let contentData = { articles: {} };
-        let usersData = {};
-        let pendingAction = null;
-        let currentLoginUsername = null;
-        let awaitingCredentials = false;
+        window.currentUser = null;
+        window.contentData = { articles: {} };
+        window.usersData = {};
+        window.pendingAction = null;
+        window.currentLoginUsername = null;
+        window.awaitingCredentials = false;
         let commandHistory = [];
         let historyIndex = -1;
         
@@ -479,7 +480,7 @@
                     <h2>ACCESS DENIED</h2>
                     <p>Warning: Insufficient clearance level</p>
                     <p>Required clearance: Level ${requiredLevel}+</p>
-                    <p>Your clearance: Level ${currentUser?.level || 0}</p>
+                    <p>Your clearance: Level ${window.currentUser?.level || 0}</p>
                 </div>
                 <p>Contact site administrator or O5 Council for access upgrade</p>
             `;
@@ -504,24 +505,24 @@
                 const defaultUsers = loadPersonnelData();
                 
                 // 合并数据（本地存储优先）
-                contentData.articles = {
+                window.contentData.articles = {
                     ...defaultArticles.articles,
                     ...(JSON.parse(localStorage.getItem('contentData'))?.articles || {}
                 };
                 
-                usersData = {
+                window.usersData = {
                     ...defaultUsers,
                     ...(JSON.parse(localStorage.getItem('usersData')) || {}
                 };
                 
                 // 保存合并后的数据
-                localStorage.setItem('contentData', JSON.stringify(contentData));
-                localStorage.setItem('usersData', JSON.stringify(usersData));
+                localStorage.setItem('contentData', JSON.stringify(window.contentData));
+                localStorage.setItem('usersData', JSON.stringify(window.usersData));
             } catch (e) {
                 console.error("Data initialization error:", e);
                 addOutput('<div class="error">Database initialization failed. Restoring defaults...</div>');
-                contentData = loadArticlesData();
-                usersData = loadPersonnelData();
+                window.contentData = loadArticlesData();
+                window.usersData = loadPersonnelData();
             }
         }
 
@@ -558,24 +559,24 @@
                         historyIndex = commandHistory.length;
                         
                         console.log("Processing command:", command);
-                        console.log("Awaiting credentials:", awaitingCredentials);
-                        console.log("Pending action:", !!pendingAction);
+                        console.log("Awaiting credentials:", window.awaitingCredentials);
+                        console.log("Pending action:", !!window.pendingAction);
                         
                         // 显示输入的命令（回显）
                         addOutput(command, true);
                     
                         // 处理Y/N确认
-                        if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
+                        if (window.pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
                             try {
-                                pendingAction(command.toLowerCase() === 'y');
+                                window.pendingAction(command.toLowerCase() === 'y');
                             } catch (error) {
                                 console.error("Pending action error:", error);
                                 addOutput(`<div class="error">SYSTEM ERROR: ${error.message}</div>`);
                             }
-                            pendingAction = null;
+                            window.pendingAction = null;
                         } 
                         // 处理凭证输入
-                        else if (awaitingCredentials) {
+                        else if (window.awaitingCredentials) {
                             if (typeof handleCredentialInput === 'function') {
                                 handleCredentialInput(command);
                             } else {
@@ -624,7 +625,7 @@
             }
         
             // 检查是否已登录
-            if (!currentUser) {
+            if (!window.currentUser) {
                 addOutput('<div class="error">ERROR: Please login first</div>');
                 return;
             }
@@ -655,8 +656,7 @@
         // 页面加载完成后初始化终端
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM fully loaded and parsed");
-            // 等待模块加载完成
-            setTimeout(initTerminal, 100);
+            initTerminal();
         });
         
         // 暴露函数到全局
