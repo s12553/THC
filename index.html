@@ -434,117 +434,175 @@
     <script src="commandscommands.js"></script>
     <script src="commandssync.js"></script>
 
-<script>
-    // 全局状态
-    let currentUser = null;
-    let contentData = { articles: {} };
-    let usersData = {};
-    let pendingAction = null;
-    let currentLoginUsername = null;
-    let awaitingCredentials = false;
-    
-    // 初始化数据
-    function initData() {
-        try {
-            // 加载人员数据
-            usersData = loadPersonnelData();
-            console.log("Loaded personnel data:", Object.keys(usersData));
+    <script>
+        // 全局状态
+        let currentUser = null;
+        let contentData = { articles: {} };
+        let usersData = {};
+        let pendingAction = null;
+        let currentLoginUsername = null;
+        let awaitingCredentials = false;
+        
+        // 添加输出到终端
+        function addOutput(text, isCommand = false) {
+            const outputDiv = document.getElementById('output');
+            const line = document.createElement('div');
+            line.className = 'output-line';
             
-            // 加载文章数据
-            contentData = loadArticlesData();
-            console.log("Loaded articles data:", Object.keys(contentData.articles));
-            
-            // 初始化本地存储
-            if (!localStorage.getItem('contentData')) {
-                localStorage.setItem('contentData', JSON.stringify(contentData));
-            }
-            if (!localStorage.getItem('usersData')) {
-                localStorage.setItem('usersData', JSON.stringify(usersData));
+            if (isCommand) {
+                line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
+            } else {
+                line.innerHTML = text;
             }
             
-            // 加载本地存储数据
-            const savedContent = localStorage.getItem('contentData');
-            if (savedContent) contentData = JSON.parse(savedContent);
-            
-            const savedUsers = localStorage.getItem('usersData');
-            if (savedUsers) usersData = JSON.parse(savedUsers);
-        } catch (e) {
-            console.error("Data initialization error:", e);
-            addOutput('<div class="error">Database initialization failed. Restoring defaults...</div>');
-            contentData = loadArticlesData();
-            usersData = loadPersonnelData();
+            outputDiv.appendChild(line);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
         }
-    }
-
-    // 初始化终端
-    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 显示权限警告
+        function showPermissionWarning(requiredLevel) {
+            const outputDiv = document.getElementById('output');
+            const warning = document.createElement('div');
+            warning.className = 'permission-warning';
+            warning.innerHTML = `
+                <div class="access-denied">
+                    <h2>ACCESS DENIED</h2>
+                    <p>Warning: Insufficient clearance level</p>
+                    <p>Required clearance: Level ${requiredLevel}+</p>
+                    <p>Your clearance: Level ${currentUser?.level || 0}</p>
+                </div>
+                <p>Contact site administrator or O5 Council for access upgrade</p>
+            `;
+            outputDiv.appendChild(warning);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
         // 初始化数据
-        initData();
-        
-        // 设置输入处理
-        const inputField = document.getElementById('input-field');
-        
-        inputField.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const command = inputField.value.trim();
-                if (command) {
-                    console.log("Command input:", command, 
-                              "Awaiting credentials:", awaitingCredentials, 
-                              "Pending action:", !!pendingAction);
-                    
-                    if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
-                        pendingAction(command.toLowerCase() === 'y');
-                        pendingAction = null;
-                    } 
-                    else if (awaitingCredentials) {
-                        handleCredentialInput(command);
-                    }
-                    else {
-                        // 使用统一的命令处理入口
-                        handleCommand(command);
-                    }
-                    inputField.value = '';
+        function initData() {
+            try {
+                // 加载人员数据
+                usersData = loadPersonnelData();
+                console.log("Loaded personnel data:", Object.keys(usersData));
+                
+                // 加载文章数据
+                contentData = loadArticlesData();
+                console.log("Loaded articles data:", Object.keys(contentData.articles));
+                
+                // 初始化本地存储
+                if (!localStorage.getItem('contentData')) {
+                    localStorage.setItem('contentData', JSON.stringify(contentData));
                 }
+                if (!localStorage.getItem('usersData')) {
+                    localStorage.setItem('usersData', JSON.stringify(usersData));
+                }
+                
+                // 加载本地存储数据
+                const savedContent = localStorage.getItem('contentData');
+                if (savedContent) contentData = JSON.parse(savedContent);
+                
+                const savedUsers = localStorage.getItem('usersData');
+                if (savedUsers) usersData = JSON.parse(savedUsers);
+            } catch (e) {
+                console.error("Data initialization error:", e);
+                addOutput('<div class="error">Database initialization failed. Restoring defaults...</div>');
+                contentData = loadArticlesData();
+                usersData = loadPersonnelData();
             }
+        }
+
+        // 初始化终端并设置事件监听器
+        function initTerminal() {
+            // 初始化数据
+            initData();
+            
+            // 获取输入框并添加事件监听器
+            const inputField = document.getElementById('input-field');
+            
+            // 添加键盘事件监听器
+            inputField.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const command = this.value.trim();
+                    if (command) {
+                        console.log("Command entered:", command);
+                        console.log("Awaiting credentials:", awaitingCredentials);
+                        console.log("Pending action:", !!pendingAction);
+                        
+                        // 处理Y/N确认
+                        if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
+                            pendingAction(command.toLowerCase() === 'y');
+                            pendingAction = null;
+                        } 
+                        // 处理凭证输入
+                        else if (awaitingCredentials) {
+                            handleCredentialInput(command);
+                        }
+                        // 处理普通命令
+                        else {
+                            handleCommand(command);
+                        }
+                        
+                        // 清空输入框
+                        this.value = '';
+                    }
+                }
+            });
+            
+            // 设置焦点到输入框
+            inputField.focus();
+            
+            // 添加初始输出
+            addOutput('<div class="output-line">SCP Foundation Terminal Access System</div>');
+            addOutput('<div class="system-info">Warning: This database is restricted to Foundation personnel with Level 1 clearance or higher. Some records require Level 5 or 6 clearance. Unauthorized access will result in immediate tracking and disciplinary action.</div>');
+            addOutput('<div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>');
+            
+            console.log("Terminal initialized");
+        }
+        
+        // 核心命令处理函数
+        function handleCommand(command) {
+            console.log("Handling command:", command);
+            
+            // 特殊处理login命令
+            if (command.toLowerCase().startsWith('login')) {
+                handleUnauthenticated(command);
+                return;
+            }
+            
+            // 检查是否已登录
+            if (!currentUser) {
+                addOutput('<div class="error">ERROR: Please login first</div>');
+                return;
+            }
+            
+            const parts = command.split(' ');
+            const cmd = parts[0].toLowerCase();
+            
+            console.log("Command after lowercase:", cmd);
+            console.log("Available handlers:", window.commandHandlers ? Object.keys(window.commandHandlers) : "NONE");
+            
+            // 检查命令处理器
+            if (window.commandHandlers && typeof window.commandHandlers[cmd] === 'function') {
+                console.log("Handler found for:", cmd);
+                window.commandHandlers[cmd](parts);
+            } else {
+                console.warn("No handler for command:", cmd);
+                addOutput('<div class="error">ERROR: Unknown command</div>');
+                addOutput('<div>Type HELP for available commands</div>');
+            }
+        }
+        
+        // 页面加载完成后初始化终端
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded and parsed");
+            initTerminal();
         });
         
-        inputField.focus();
-    });
-    
-    // 核心命令处理入口
-    function handleCommand(command) {
-        // 特殊处理未认证状态
-        if (!currentUser && command.toLowerCase().startsWith('login')) {
-            handleUnauthenticated(command);
-            return;
-        }
-        
-        // 确保命令处理器可用
-        if (!window.commandHandlers) {
-            console.error("Command handlers not available!");
-            addOutput('<div class="error">SYSTEM ERROR: Command processors offline</div>');
-            return;
-        }
-        
-        const parts = command.split(' ');
-        const cmd = parts[0].toLowerCase();
-        
-        // 调试信息
-        console.log("Executing command:", cmd, "from:", command);
-        console.log("Available handlers:", Object.keys(window.commandHandlers));
-        
-        if (typeof window.commandHandlers[cmd] === 'function') {
-            window.commandHandlers[cmd](parts);
-        } else {
-            addOutput('<div class="error">ERROR: Unknown command</div>');
-            addOutput('<div>Type HELP for available commands</div>');
-        }
-    }
-    
-    // 暴露核心函数到全局
-    window.handleCommand = handleCommand;
-    window.handleCredentialInput = handleCredentialInput;
-    window.handleUnauthenticated = handleUnauthenticated;
-</script>
+        // 暴露函数到全局
+        window.addOutput = addOutput;
+        window.showPermissionWarning = showPermissionWarning;
+        window.handleCommand = handleCommand;
+        window.handleCredentialInput = handleCredentialInput;
+        window.handleUnauthenticated = handleUnauthenticated;
+    </script>
 </body>
 </html>
