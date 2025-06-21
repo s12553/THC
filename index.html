@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCP Foundation Terminal Access System</title>
+    <title>SCP-Foundation Terminal Access System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -428,9 +428,10 @@
         </div>
     </div>
 
-    <!-- 引入模块化JS文件 -->
+    <!-- 引入JS文件 -->
     <script src="datapersonnel.js"></script>
     <script src="datearticles.js"></script>
+    <script src="commandssync.js"></script>
     <script type="module" src="commandscommands.js"></script>
 
     <script>
@@ -450,8 +451,13 @@
             const line = document.createElement('div');
             line.className = 'output-line';
             
-            // XSS防护
-            const sanitized = String(text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            // 允许必要的HTML标签但防止XSS
+            const sanitized = String(text)
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/&lt;(\/?div|\/?span|\/?strong|\/?em|\/?br|\/?hr)[^&]*&gt;/gi, (match) => {
+                    return match.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+                });
             
             if (isCommand) {
                 line.innerHTML = `<span style="color: #00cc00">> </span>${sanitized}`;
@@ -551,6 +557,10 @@
                         commandHistory.push(command);
                         historyIndex = commandHistory.length;
                         
+                        console.log("Processing command:", command);
+                        console.log("Awaiting credentials:", awaitingCredentials);
+                        console.log("Pending action:", !!pendingAction);
+                        
                         // 显示输入的命令（回显）
                         addOutput(command, true);
                     
@@ -566,7 +576,11 @@
                         } 
                         // 处理凭证输入
                         else if (awaitingCredentials) {
-                            handleCredentialInput(command);
+                            if (typeof handleCredentialInput === 'function') {
+                                handleCredentialInput(command);
+                            } else {
+                                addOutput('<div class="error">SYSTEM ERROR: Credential handler not available</div>');
+                            }
                         }
                         // 处理普通命令
                         else {
@@ -601,7 +615,11 @@
         
             // 特殊处理login命令
             if (command.toLowerCase().startsWith('login')) {
-                handleUnauthenticated(command);
+                if (typeof handleUnauthenticated === 'function') {
+                    handleUnauthenticated(command);
+                } else {
+                    addOutput('<div class="error">SYSTEM ERROR: Login handler not available</div>');
+                }
                 return;
             }
         
@@ -637,14 +655,13 @@
         // 页面加载完成后初始化终端
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM fully loaded and parsed");
-            initTerminal();
+            // 等待模块加载完成
+            setTimeout(initTerminal, 100);
         });
         
         // 暴露函数到全局
         window.addOutput = addOutput;
         window.showPermissionWarning = showPermissionWarning;
-        window.handleCredentialInput = handleCredentialInput;
-        window.handleUnauthenticated = handleUnauthenticated;
     </script>
 </body>
 </html>
