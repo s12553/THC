@@ -14,7 +14,7 @@ function handleSyncUpload(repo, token) {
             addOutput('<div class="success">Data successfully uploaded to GitHub</div>');
             addOutput('<div class="system-info">Remote repository updated with latest SCP documentation</div>');
         } else {
-            addOutput('<div class="error">ERROR: Failed to upload data to GitHub</div>');
+            addOutput('<div极 class="error">ERROR: Failed to upload data to GitHub</div>');
             addOutput('<div>Possible causes: Invalid token, repository not found, or network issues</div>');
         }
     }, 2000);
@@ -38,5 +38,6 @@ function handleSyncDownload(repo, token) {
     }, 2000);
 }
 
-// 导出函数供其他模块使用
-export { handleSyncUpload, handleSyncDownload };
+// 暴露函数到全局
+window.handleSyncUpload = handleSyncUpload;
+window.handleSyncDownload = handleSyncDownload;
