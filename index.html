@@ -512,13 +512,13 @@
 
         // 初始化终端并设置事件监听器
         function initTerminal() {
-            // 初始化数据
+        // 初始化数据
             initData();
-            
-            // 获取输入框并添加事件监听器
+        
+        // 获取输入框并添加事件监听器
             const inputField = document.getElementById('input-field');
-            
-            // 添加键盘事件监听器
+        
+        // 添加键盘事件监听器
             inputField.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     const command = this.value.trim();
@@ -526,22 +526,25 @@
                         console.log("Command entered:", command);
                         console.log("Awaiting credentials:", awaitingCredentials);
                         console.log("Pending action:", !!pendingAction);
-                        
-                        // 处理Y/N确认
+                    
+                    // 显示输入的命令（回显）
+                        addOutput(command, true);
+                    
+                    // 处理Y/N确认
                         if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
                             pendingAction(command.toLowerCase() === 'y');
                             pendingAction = null;
                         } 
-                        // 处理凭证输入
+                    // 处理凭证输入
                         else if (awaitingCredentials) {
                             handleCredentialInput(command);
                         }
-                        // 处理普通命令
+                    // 处理普通命令
                         else {
-                            handleCommand(command);
+                            processCommand(command);
                         }
-                        
-                        // 清空输入框
+                    
+                    // 清空输入框
                         this.value = '';
                     }
                 }
@@ -559,28 +562,28 @@
         }
         
         // 核心命令处理函数
-        function handleCommand(command) {
-            console.log("Handling command:", command);
-            
-            // 特殊处理login命令
+        function processCommand(command) {
+            console.log("Processing command:", command);
+        
+        // 特殊处理login命令
             if (command.toLowerCase().startsWith('login')) {
                 handleUnauthenticated(command);
                 return;
             }
-            
-            // 检查是否已登录
+        
+        // 检查是否已登录
             if (!currentUser) {
                 addOutput('<div class="error">ERROR: Please login first</div>');
                 return;
             }
-            
+        
             const parts = command.split(' ');
             const cmd = parts[0].toLowerCase();
-            
+        
             console.log("Command after lowercase:", cmd);
             console.log("Available handlers:", window.commandHandlers ? Object.keys(window.commandHandlers) : "NONE");
-            
-            // 检查命令处理器
+        
+        // 检查命令处理器
             if (window.commandHandlers && typeof window.commandHandlers[cmd] === 'function') {
                 console.log("Handler found for:", cmd);
                 window.commandHandlers[cmd](parts);
