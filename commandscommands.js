@@ -100,7 +100,7 @@ function handleCredentialInput(credentials) {
 }
 
 // 帮助命令实现
-function handleHelp(parts) {
+function handleHelp(rawCommand, parts) {
     console.log("Handling HELP command");
     let helpText = '<div class="system-info">Available commands:<br>';
     helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
@@ -133,7 +133,7 @@ function handleHelp(parts) {
 }
 
 // SCP访问命令实现
-function handleAccess(parts) {
+function handleAccess(rawCommand, parts) {
     console.log("Handling ACCESS command with parts:", parts);
     if (parts.length < 2) {
         addOutput('<div class="error">ERROR: Missing SCP designation</div>');
@@ -166,14 +166,14 @@ function handleAccess(parts) {
 }
 
 // 登出
-function handleLogout() {
+function handleLogout(rawCommand, parts) {
     addOutput(`<div class="success">User ${currentUser.name} logged out</div>`);
     currentUser = null;
     addOutput('<div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>');
 }
 
 // 清除终端
-function handleClear() {
+function handleClear(rawCommand, parts) {
     const outputDiv = document.getElementById('output');
     outputDiv.innerHTML = '';
     addOutput('<div class="output-line">SCP Foundation Terminal Access System</div>');
@@ -242,7 +242,7 @@ function handleAdd(rawCommand, parts) {
 }
 
 // 列出文档
-function handleList(parts) {
+function handleList(rawCommand, parts) {
     if (parts[1]?.toLowerCase() !== 'articles') {
         addOutput('<div class="error">ERROR: Invalid LIST command</div>');
         return;
@@ -258,7 +258,7 @@ function handleList(parts) {
 }
 
 // O5命令：添加标记
-function handleMark(parts) {
+function handleMark(rawCommand, parts) {
     if (!currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
@@ -292,7 +292,7 @@ function handleMark(parts) {
 }
 
 // O5命令：设置权限等级
-function handleSetLevel(parts) {
+function handleSetLevel(rawCommand, parts) {
     if (!currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
@@ -323,7 +323,7 @@ function handleSetLevel(parts) {
 }
 
 // O5命令：搜索状态
-function handleSearchStatus(parts) {
+function handleSearchStatus(rawCommand, parts) {
     if (!currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
@@ -348,7 +348,7 @@ function handleSearchStatus(parts) {
 }
 
 // O5命令：邮箱
-function handleMailbox(parts) {
+function handleMailbox(rawCommand, parts) {
     if (!currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
@@ -367,7 +367,7 @@ function handleMailbox(parts) {
 }
 
 // 搜索命令
-function handleSearch(parts) {
+function handleSearch(rawCommand, parts) {
     if (parts.length < 2) {
         addOutput('<div class="error">ERROR: Missing search term</div>');
         addOutput('<div>Usage: SEARCH [TERM] or SEARCH MARK [MARK]</div>');
@@ -505,7 +505,7 @@ function escapeRegExp(string) {
 }
 
 // 同步命令
-function handleSync(parts) {
+function handleSync(rawCommand, parts) {
     if (parts.length < 4) {
         addOutput('<div class="error">Format: SYNC [ACTION] [USER/REPO] [TOKEN]</div>');
         addOutput('<div>Actions: UPLOAD, DOWNLOAD</div>');
@@ -524,3 +524,7 @@ function handleSync(parts) {
         addOutput('<div class="error">ERROR: Invalid sync action. Use UPLOAD or DOWNLOAD</div>');
     }
 }
+
+// 暴露必要的函数到全局
+window.handleCredentialInput = handleCredentialInput;
+window.handleUnauthenticated = handleUnauthenticated;
