@@ -37,4 +37,6 @@ function handleSyncDownload(repo, token) {
         }
     }, 2000);
 }
+
+// 导出函数供其他模块使用
 export { handleSyncUpload, handleSyncDownload };
