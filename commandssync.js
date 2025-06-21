@@ -37,8 +37,4 @@ function handleSyncDownload(repo, token) {
         }
     }, 2000);
 }
-
-if (typeof window !== 'undefined') {
-    window.commandHandlers = window.commandHandlers || {};
-    window.commandHandlers.sync = handleSync;
-}
+export { handleSyncUpload, handleSyncDownload };
