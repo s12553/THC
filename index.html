@@ -431,8 +431,7 @@
     <!-- 引入模块化JS文件 -->
     <script src="datapersonnel.js"></script>
     <script src="datearticles.js"></script>
-    <script src="commandscommands.js"></script>
-    <script src="commandssync.js"></script>
+    <script type="module" src="commandscommands.js"></script>
 
     <script>
         // 全局状态
@@ -442,6 +441,8 @@
         let pendingAction = null;
         let currentLoginUsername = null;
         let awaitingCredentials = false;
+        let commandHistory = [];
+        let historyIndex = -1;
         
         // 添加输出到终端
         function addOutput(text, isCommand = false) {
@@ -449,10 +450,13 @@
             const line = document.createElement('div');
             line.className = 'output-line';
             
+            // XSS防护
+            const sanitized = String(text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
             if (isCommand) {
-                line.innerHTML = `<span style="color: #00cc00">> </span>${text}`;
+                line.innerHTML = `<span style="color: #00cc00">> </span>${sanitized}`;
             } else {
-                line.innerHTML = text;
+                line.innerHTML = sanitized;
             }
             
             outputDiv.appendChild(line);
@@ -479,29 +483,34 @@
         
         // 初始化数据
         function initData() {
+            // 数据版本控制
+            const DATA_VERSION = "1.0";
+            const savedVersion = localStorage.getItem('dataVersion');
+            
+            if (savedVersion !== DATA_VERSION) {
+                localStorage.clear();
+                localStorage.setItem('dataVersion', DATA_VERSION);
+            }
+            
             try {
-                // 加载人员数据
-                usersData = loadPersonnelData();
-                console.log("Loaded personnel data:", Object.keys(usersData));
+                // 加载默认数据
+                const defaultArticles = loadArticlesData();
+                const defaultUsers = loadPersonnelData();
                 
-                // 加载文章数据
-                contentData = loadArticlesData();
-                console.log("Loaded articles data:", Object.keys(contentData.articles));
+                // 合并数据（本地存储优先）
+                contentData.articles = {
+                    ...defaultArticles.articles,
+                    ...(JSON.parse(localStorage.getItem('contentData'))?.articles || {}
+                };
                 
-                // 初始化本地存储
-                if (!localStorage.getItem('contentData')) {
-                    localStorage.setItem('contentData', JSON.stringify(contentData));
-                }
-                if (!localStorage.getItem('usersData')) {
-                    localStorage.setItem('usersData', JSON.stringify(usersData));
-                }
+                usersData = {
+                    ...defaultUsers,
+                    ...(JSON.parse(localStorage.getItem('usersData')) || {}
+                };
                 
-                // 加载本地存储数据
-                const savedContent = localStorage.getItem('contentData');
-                if (savedContent) contentData = JSON.parse(savedContent);
-                
-                const savedUsers = localStorage.getItem('usersData');
-                if (savedUsers) usersData = JSON.parse(savedUsers);
+                // 保存合并后的数据
+                localStorage.setItem('contentData', JSON.stringify(contentData));
+                localStorage.setItem('usersData', JSON.stringify(usersData));
             } catch (e) {
                 console.error("Data initialization error:", e);
                 addOutput('<div class="error">Database initialization failed. Restoring defaults...</div>');
@@ -512,39 +521,64 @@
 
         // 初始化终端并设置事件监听器
         function initTerminal() {
-        // 初始化数据
+            // 初始化数据
             initData();
         
-        // 获取输入框并添加事件监听器
+            // 获取输入框并添加事件监听器
             const inputField = document.getElementById('input-field');
         
-        // 添加键盘事件监听器
+            // 添加键盘事件监听器
             inputField.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
+                // 命令历史导航
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (commandHistory.length > 0) {
+                        historyIndex = Math.max(historyIndex - 1, -1);
+                        inputField.value = historyIndex >= 0 ? commandHistory[historyIndex] : '';
+                    }
+                }
+                else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (commandHistory.length > 0) {
+                        historyIndex = Math.min(historyIndex + 1, commandHistory.length);
+                        inputField.value = historyIndex < commandHistory.length ? commandHistory[historyIndex] : '';
+                    }
+                }
+                else if (e.key === 'Enter') {
                     const command = this.value.trim();
                     if (command) {
-                        console.log("Command entered:", command);
-                        console.log("Awaiting credentials:", awaitingCredentials);
-                        console.log("Pending action:", !!pendingAction);
-                    
-                    // 显示输入的命令（回显）
+                        // 添加到命令历史
+                        commandHistory.push(command);
+                        historyIndex = commandHistory.length;
+                        
+                        // 显示输入的命令（回显）
                         addOutput(command, true);
                     
-                    // 处理Y/N确认
+                        // 处理Y/N确认
                         if (pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
-                            pendingAction(command.toLowerCase() === 'y');
+                            try {
+                                pendingAction(command.toLowerCase() === 'y');
+                            } catch (error) {
+                                console.error("Pending action error:", error);
+                                addOutput(`<div class="error">SYSTEM ERROR: ${error.message}</div>`);
+                            }
                             pendingAction = null;
                         } 
-                    // 处理凭证输入
+                        // 处理凭证输入
                         else if (awaitingCredentials) {
                             handleCredentialInput(command);
                         }
-                    // 处理普通命令
+                        // 处理普通命令
                         else {
-                            processCommand(command);
+                            try {
+                                processCommand(command);
+                            } catch (error) {
+                                console.error("Command processing error:", error);
+                                addOutput(`<div class="error">SYSTEM ERROR: ${error.message}</div>`);
+                            }
                         }
                     
-                    // 清空输入框
+                        // 清空输入框
                         this.value = '';
                     }
                 }
@@ -565,13 +599,13 @@
         function processCommand(command) {
             console.log("Processing command:", command);
         
-        // 特殊处理login命令
+            // 特殊处理login命令
             if (command.toLowerCase().startsWith('login')) {
                 handleUnauthenticated(command);
                 return;
             }
         
-        // 检查是否已登录
+            // 检查是否已登录
             if (!currentUser) {
                 addOutput('<div class="error">ERROR: Please login first</div>');
                 return;
@@ -583,10 +617,16 @@
             console.log("Command after lowercase:", cmd);
             console.log("Available handlers:", window.commandHandlers ? Object.keys(window.commandHandlers) : "NONE");
         
-        // 检查命令处理器
+            // 检查命令处理器
             if (window.commandHandlers && typeof window.commandHandlers[cmd] === 'function') {
                 console.log("Handler found for:", cmd);
-                window.commandHandlers[cmd](parts);
+                try {
+                    // 传递原始命令和分割部分
+                    window.commandHandlers[cmd](command, parts);
+                } catch (error) {
+                    console.error("Command execution error:", error);
+                    addOutput(`<div class="error">SYSTEM ERROR: ${error.message}</div>`);
+                }
             } else {
                 console.warn("No handler for command:", cmd);
                 addOutput('<div class="error">ERROR: Unknown command</div>');
@@ -603,7 +643,6 @@
         // 暴露函数到全局
         window.addOutput = addOutput;
         window.showPermissionWarning = showPermissionWarning;
-        window.handleCommand = handleCommand;
         window.handleCredentialInput = handleCredentialInput;
         window.handleUnauthenticated = handleUnauthenticated;
     </script>
