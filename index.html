@@ -3,664 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCP-Foundation Terminal Access System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>SCIPNET Direct Storage Terminal - Security Protocol 2317-Alpha</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Courier New', monospace;
-        }
-        
-        body {
-            background-color: #1a1a1a;
-            color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            background-image: radial-gradient(#2a2a2a 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-        
-        .terminal-container {
-            width: 100%;
-            max-width: 900px;
-            background-color: #0f0f0f;
-            border: 1px solid #444;
-            border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0, 100, 0, 0.3);
-            overflow: hidden;
-        }
-        
-        .terminal-header {
-            background: linear-gradient(to right, #003300, #002200);
-            padding: 12px 15px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #004400;
-        }
-        
-        .header-title {
-            color: #00cc00;
-            font-weight: bold;
-            flex-grow: 1;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-        }
-        
-        .header-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .header-btn {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        
-        .btn-red { background-color: #ff5f56; }
-        .btn-yellow { background-color: #ffbd2e; }
-        .btn-green { background-color: #27c93f; }
-        
-        .terminal-body {
-            padding: 20px;
-            min-height: 500px;
-            background-color: #0c0c0c;
-            overflow-y: auto;
-            max-height: 70vh;
-            border: 1px solid #222;
-            margin: 10px;
-            border-radius: 3px;
-        }
-        
-        .terminal-output {
-            white-space: pre-wrap;
-            line-height: 1.5;
-            font-size: 15px;
-        }
-        
-        .output-line {
-            margin-bottom: 8px;
-        }
-        
-        .command-input {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #080808;
-            border-top: 1px solid #222;
-        }
-        
-        .prompt {
-            color: #00cc00;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-        
-        #input-field {
-            background: transparent;
-            border: none;
-            color: #e0e0e0;
-            font-size: 15px;
-            width: 100%;
-            outline: none;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .scp-header {
-            color: #00cc00;
-            text-align: center;
-            margin: 15px 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-        }
-        
-        .scp-item {
-            margin-bottom: 20px;
-            padding: 10px;
-            border-left: 2px solid #004400;
-        }
-        
-        .scp-title {
-            color: #00cc00;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        .scp-content {
-            color: #cccccc;
-            line-height: 1.6;
-        }
-        
-        .warning {
-            color: #ff5555;
-            font-weight: bold;
-            background-color: #220000;
-            padding: 10px;
-            border: 1px solid #ff0000;
-            margin: 15px 0;
-            text-align: center;
-        }
-        
-        .restricted {
-            color: #ffaa00;
-            background-color: #1f1f00;
-            padding: 5px;
-            border-left: 3px solid #ffaa00;
-            margin-top: 10px;
-        }
-        
-        .data-deleted {
-            background-color: #220000;
-            color: #ff5555;
-            padding: 2px 5px;
-            display: inline-block;
-        }
-        
-        .permission-indicator {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        
-        .level-0 { background-color: #003366; color: #66aaff; }
-        .level-1 { background-color: #336600; color: #99ff66; }
-        .level-2 { background-color: #663300; color: #ffcc66; }
-        .level-3 { background-color: #660033; color: #ff66aa; }
-        
-        .footer {
-            text-align: center;
-            padding: 15px;
-            color: #555;
-            font-size: 12px;
-            border-top: 1px solid #222;
-            background-color: #080808;
-        }
-        
-        .blinking-cursor {
-            display: inline-block;
-            width: 8px;
-            height: 15px;
-            background-color: #00cc00;
-            margin-left: 5px;
-            animation: blink 1s infinite;
-            vertical-align: middle;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        
-        .user-info {
-            color: #66aaff;
-            margin: 10px 0;
-            padding-left: 5px;
-            border-left: 2px solid #66aaff;
-        }
-        
-        .error {
-            color: #ff5555;
-            background-color: #220000;
-            padding: 5px;
-            margin: 5px 0;
-        }
-        
-        .success {
-            color: #55ff55;
-            background-color: #002200;
-            padding: 5px;
-            margin: 5px 0;
-        }
-        
-        .admin-only {
-            color: #ff66aa;
-            border-left: 2px solid #ff66aa;
-            padding: 5px;
-            margin: 10px 0;
-        }
-        
-        .permission-warning {
-            background: linear-gradient(45deg, #220000, #440000);
-            border: 1px solid #ff5555;
-            padding: 15px;
-            margin: 15px 0;
-            text-align: center;
-            font-size: 1.2em;
-            border-radius: 3px;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-        }
-        
-        .access-denied {
-            text-align: center;
-            padding: 20px;
-            background: repeating-linear-gradient(
-                45deg,
-                #1a0000,
-                #1a0000 10px,
-                #220000 10px,
-                #220000 20px
-            );
-            border: 1px solid #ff0000;
-            margin: 20px 0;
-        }
-        
-        .access-denied h2 {
-            color: #ff5555;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .access-denied p {
-            color: #ff9999;
-        }
-        
-        .system-info {
-            color: #66aaff;
-            background-color: #001a33;
-            padding: 8px;
-            margin: 10px 0;
-            border-left: 3px solid #66aaff;
-        }
-        
-        .data-structure {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
-            padding: 10px;
-            margin: 10px 0;
-            font-family: monospace;
-            white-space: pre;
-            overflow-x: auto;
-        }
-        
-        .github-status {
-            padding: 8px;
-            margin: 10px 0;
-            border-radius: 3px;
-            font-size: 0.9rem;
-        }
-        
-        .status-connected {
-            background-color: #002200;
-            color: #55ff55;
-            border-left: 3px solid #55ff55;
-        }
-        
-        .login-prompt {
-            color: #66aaff;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        
-        .command-prompt {
-            color: #00cc00;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        
-        .search-results {
-            margin: 10px 0;
-            padding-left: 20px;
-            border-left: 1px solid #444;
-        }
-        
-        .search-item {
-            margin: 5px 0;
-            color: #cccccc;
-        }
-        
-        .search-error {
-            color: #ff5555;
-        }
-        
-        .document-header {
-            color: #00cc00;
-            font-weight: bold;
-            margin: 10px 0;
-            text-align: center;
-        }
-        
-        .document-content {
-            background-color: #001100;
-            padding: 15px;
-            border: 1px solid #004400;
-            margin: 10px 0;
-        }
-        
-        .status-list {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        
-        .status-item {
-            margin: 5px 0;
-        }
-        
-        .status-success {
-            color: #55ff55;
-        }
-        
-        .status-neutralized {
-            color: #ffaa00;
-        }
-        
-        .status-located {
-            color: #66aaff;
-        }
-        
-        .mailbox-header {
-            color: #00cc00;
-            margin: 10px 0;
-            text-align: center;
-            text-decoration: underline;
-        }
-        
-        .mailbox-content {
-            background-color: #001133;
-            padding: 15px;
-            border: 1px solid #004488;
-            margin: 10px 0;
-        }
-        
-        /* 新增样式 */
-        .search-confirm {
-            color: #66aaff;
-            margin: 10px 0;
-            padding: 5px;
-            border-left: 2px solid #66aaff;
-        }
-
-        .mark-tag {
-            display: inline-block;
-            background-color: #660066;
-            color: #ff99ff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.8em;
-            margin-left: 5px;
-        }
-        
-        .search-match {
-            background-color: #333;
-            color: #fff;
-            padding: 0 2px;
-            border-radius: 2px;
-        }
+        body { font-family: 'Courier New', Courier, monospace; background: #1a1a1a; color: #00ff00; margin: 0; padding: 20px; }
+        #output { white-space: pre-wrap; margin-bottom: 10px; }
+        #command-input { background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; width: 80%; }
+        .error { color: #ff0000; }
+        .success { color: #00ff00; }
+        .system-info { color: #ffff00; }
+        .user-info { color: #00ffff; }
+        .login-prompt { color: #ff00ff; }
+        .command-prompt { color: #ff00ff; }
+        .scp-header { font-weight: bold; }
+        .scp-item { margin-left: 20px; }
+        .mark-tag { background: #333; padding: 2px 5px; margin: 0 2px; }
+        .search-match { background: #444; }
+        .permission-indicator { color: #ff00ff; }
+        .admin-only { color: #ff4500; }
+        .status-neutralized { color: #00ff00; }
+        .status-located { color: #ffff00; }
+        .mailbox-header { font-weight: bold; }
+        .mailbox-content { margin-left: 20px; }
     </style>
 </head>
 <body>
-    <div class="terminal-container">
-        <div class="terminal-header">
-            <div class="header-title">SCIPNET Direct Storage Terminal - Security Protocol 2317-Alpha</div>
-            <div class="header-buttons">
-                <div class="header-btn btn-red"></div>
-                <div class极="header-btn btn-yellow"></div>
-                <div class="header-btn btn-green"></div>
-            </div>
-        </div>
-        
-        <div class="terminal-body">
-            <div class="terminal-output" id="output">
-                <div class="output-line">SCP Foundation Terminal Access System</div>
-                <div class="system-info">Warning: This database is restricted to Foundation personnel with Level 1 clearance or higher. Some records require Level 5 or 6 clearance. Unauthorized access will result in immediate tracking and disciplinary action.</div>
-                <div class="github-status status-connected">
-                    <i class="fas fa-circle connected"></i> Local Database Status: Active
-                </div>
-                <div class="system-info">System time: <span id="system-time">2:30 PM, Wednesday, June 18</span></div>
-                <div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>
-            </div>
-        </div>
-        
-        <div class="command-input">
-            <div class="prompt">> </div>
-            <input type="text" id="input-field" autocomplete="off" autofocus>
-            <div class="blinking-cursor"></div>
-        </div>
-        
-        <div class="footer">
-            SCP Foundation - Secure Information Management System | Current Time: <span id="current-time">2025-06-18 14:30:15</span> | Security Level: Gamma
-        </div>
-    </div>
+    <div id="output">
+        SCP Foundation Terminal Access System
 
-    <!-- 引入JS文件 -->
+        Warning: This database is restricted to Foundation personnel with Level 1 clearance or higher. Some records require Level 5 or 6 clearance. Unauthorized access will result in immediate tracking and disciplinary action.
+
+        <div>Local Database Status: Active</div>
+
+        System time: 2:30 PM, Wednesday, June 18
+
+        > Type LOGIN [USERNAME] to begin authentication
+    </div>
+    <input type="text" id="command-input" autofocus>
     <script src="datapersonnel.js"></script>
     <script src="datearticles.js"></script>
     <script src="commandssync.js"></script>
     <script src="commandscommands.js"></script>
-
     <script>
-        // 全局状态
-        window.currentUser = null;
-        window.contentData = { articles: {} };
-        window.usersData = {};
-        window.pendingAction = null;
-        window.currentLoginUsername = null;
-        window.awaitingCredentials = false;
-        let commandHistory = [];
-        let historyIndex = -1;
-        
-        // 添加输出到终端
-        function addOutput(text, isCommand = false) {
-            const outputDiv = document.getElementById('output');
-            const line = document.createElement('div');
-            line.className = 'output-line';
-            
-            // 允许必要的HTML标签但防止XSS
-            const sanitized = String(text)
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/&lt;(\/?div|\/?span|\/?strong|\/?em|\/?br|\/?hr)[^&]*&gt;/gi, (match) => {
-                    return match.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-                });
-            
-            if (isCommand) {
-                line.innerHTML = `<span style="color: #00cc00">> </span>${sanitized}`;
-            } else {
-                line.innerHTML = sanitized;
-            }
-            
-            outputDiv.appendChild(line);
-            outputDiv.scrollTop = outputDiv.scrollHeight;
-        }
-        
-        // 显示权限警告
-        function showPermissionWarning(requiredLevel) {
-            const outputDiv = document.getElementById('output');
-            const warning = document.createElement('div');
-            warning.className = 'permission-warning';
-            warning.innerHTML = `
-                <div class="access-denied">
-                    <h2>ACCESS DENIED</h2>
-                    <p>Warning: Insufficient clearance level</p>
-                    <p>Required clearance: Level ${requiredLevel}+</p>
-                    <p>Your clearance: Level ${window.currentUser?.level || 0}</p>
-                </div>
-                <p>Contact site administrator or O5 Council for access upgrade</p>
-            `;
-            outputDiv.appendChild(warning);
-            outputDiv.scrollTop = outputDiv.scrollHeight;
-        }
-        
-        // 初始化数据
-        function initData() {
-            // 数据版本控制
-            const DATA_VERSION = "1.0";
-            const savedVersion = localStorage.getItem('dataVersion');
-            
-            if (savedVersion !== DATA_VERSION) {
-                localStorage.clear();
-                localStorage.setItem('dataVersion', DATA_VERSION);
-            }
-            
-            try {
-                // 加载默认数据
-                const defaultArticles = loadArticlesData();
-                const defaultUsers = loadPersonnelData();
-                
-                // 合并数据（本地存储优先）
-                window.contentData.articles = {
-                    ...defaultArticles.articles,
-                    ...(JSON.parse(localStorage.getItem('contentData'))?.articles || {}
-                };
-                
-                window.usersData = {
-                    ...defaultUsers,
-                    ...(JSON.parse(localStorage.getItem('usersData')) || {}
-                };
-                
-                // 保存合并后的数据
-                localStorage.setItem('contentData', JSON.stringify(window.contentData));
-                localStorage.setItem('usersData', JSON.stringify(window.usersData));
-            } catch (e) {
-                console.error("Data initialization error:", e);
-                addOutput('<div class="error">Database initialization failed. Restoring defaults...</div>');
-                window.contentData = loadArticlesData();
-                window.usersData = loadPersonnelData();
-            }
+        const output = document.getElementById('output');
+        const commandInput = document.getElementById('command-input');
+
+        function addOutput(text) {
+            output.innerHTML += text + '\n';
+            output.scrollTop = output.scrollHeight;
         }
 
-        // 核心命令处理函数
-        function processCommand(command) {
-            console.log("Processing command:", command);
-        
-            // 特殊处理login命令
-            if (command.toLowerCase().startsWith('login')) {
-                if (typeof window.handleUnauthenticated === 'function') {
-                    window.handleUnauthenticated(command);
-                } else {
-                    addOutput('<div class="error">SYSTEM ERROR: Login handler not available</div>');
-                }
-                return;
-            }
-        
-            // 检查是否已登录
-            if (!window.currentUser) {
-                addOutput('<div class="error">ERROR: Please login first</div>');
-                return;
-            }
-        
-            const parts = command.split(' ');
-            const cmd = parts[0].toLowerCase();
-        
-            console.log("Command after lowercase:", cmd);
-            console.log("Available handlers:", window.commandHandlers ? Object.keys(window.commandHandlers) : "NONE");
-        
-            // 检查命令处理器
-            if (window.commandHandlers && typeof window.commandHandlers[cmd] === 'function') {
-                console.log("Handler found for:", cmd);
-                try {
-                    // 传递原始命令和分割部分
-                    window.commandHandlers[cmd](command, parts);
-                } catch (error) {
-                    console.error("Command execution error:", error);
-                    addOutput(`<div class="error">SYSTEM ERROR: ${error.message}</div>`);
-                }
-            } else {
-                console.warn("No handler for command:", cmd);
-                addOutput('<div class="error">ERROR: Unknown command</div>');
-                addOutput('<div>Type HELP for available commands</div>');
-            }
-        }
-
-        // 初始化终端并设置事件监听器
-        function initTerminal() {
-            // 初始化数据
-            initData();
-        
-            // 获取输入框并添加事件监听器
-            const inputField = document.getElementById('input-field');
-        
-            // 添加键盘事件监听器
-            inputField.addEventListener('keydown', function(e) {
-                // 命令历史导航
-                if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (commandHistory.length > 0) {
-                        historyIndex = Math.max(historyIndex - 1, -1);
-                        inputField.value = historyIndex >= 0 ? commandHistory[historyIndex] : '';
-                    }
-                }
-                else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (commandHistory.length > 0) {
-                        historyIndex = Math.min(historyIndex + 1, commandHistory.length);
-                        inputField.value = historyIndex < commandHistory.length ? commandHistory[historyIndex] : '';
-                    }
-                }
-                else if (e.key === 'Enter') {
-                    const command = this.value.trim();
+        document.addEventListener('DOMContentLoaded', () => {
+            commandInput.focus();
+            commandInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    const command = commandInput.value.trim();
                     if (command) {
-                        // 添加到命令历史
-                        commandHistory.push(command);
-                        historyIndex = commandHistory.length;
-                        
-                        console.log("Processing command:", command);
-                        console.log("Awaiting credentials:", window.awaitingCredentials);
-                        console.log("Pending action:", !!window.pendingAction);
-                        
-                        // 显示输入的命令（回显）
-                        addOutput(command, true);
-                    
-                        // 处理Y/N确认
-                        if (window.pendingAction && (command.toLowerCase() === 'y' || command.toLowerCase() === 'n')) {
-                            try {
-                                window.pendingAction(command.toLowerCase() === 'y');
-                            } catch (error) {
-                                console.error("Pending action error:", error);
-                                addOutput(`<div class="error">SYSTEM ERROR: ${error.message}</div>`);
-                            }
-                            window.pendingAction = null;
-                        } 
-                        // 处理凭证输入
-                        else if (window.awaitingCredentials) {
-                            if (typeof window.handleCredentialInput === 'function') {
-                                window.handleCredentialInput(command);
-                            } else {
-                                addOutput('<div class="error">SYSTEM ERROR: Credential handler not available</div>');
-                            }
-                        }
-                        // 处理普通命令
-                        else {
-                            try {
-                                processCommand(command);
-                            } catch (error) {
-                                console.error("Command processing error:", error);
-                                addOutput(`<div class="error">SYSTEM ERROR: ${error.message}</div>`);
-                            }
-                        }
-                    
-                        // 清空输入框
-                        this.value = '';
+                        addOutput('> ' + command);
+                        processCommand(command);
+                        commandInput.value = '';
                     }
                 }
             });
-            
-            // 设置焦点到输入框
-            inputField.focus();
-            
-            // 添加初始输出
-            addOutput('<div class="output-line">SCP Foundation Terminal Access System</div>');
-            addOutput('<div class="system-info">Warning: This database is restricted to Foundation personnel with Level 1 clearance or higher. Some records require Level 5 or 6 clearance. Unauthorized access will result in immediate tracking and disciplinary action.</div>');
-            addOutput('<div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>');
-            
-            console.log("Terminal initialized");
-        }
-        
-        // 页面加载完成后初始化终端
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM fully loaded and parsed");
-            initTerminal();
         });
-        
-        // 暴露函数到全局
-        window.addOutput = addOutput;
-        window.showPermissionWarning = showPermissionWarning;
+
+        function processCommand(command) {
+            const parts = command.split(' ').filter(part => part !== '');
+            const cmd = parts[0].toLowerCase();
+            if (window.commandHandlers && window.commandHandlers[cmd]) {
+                window.commandHandlers[cmd](parts);
+            } else {
+                addOutput('Error: Command not found.');
+            }
+        }
+
+        // 全局变量
+        let currentUser = null;
+        let currentLoginUsername = null;
+        let awaitingCredentials = false;
+        let pendingAction = null;
+        let usersData = loadPersonnelData();
+        let contentData = { articles: loadArticlesData() };
+
+        // 处理认证输入
+        commandInput.addEventListener('input', () => {
+            if (awaitingCredentials && commandInput.value.trim().includes('|')) {
+                handleCredentialInput(commandInput.value.trim());
+                commandInput.value = '';
+            }
+        });
     </script>
 </body>
 </html>
