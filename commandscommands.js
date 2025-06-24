@@ -1,30 +1,46 @@
 // 命令处理函数映射
-window.commandHandlers = window.commandHandlers || {};
+const commandHandlers = {
+    help: handleHelp,
+    login: handleLogin,
+    access: handleAccess,
+    logout: handleLogout,
+    clear: handleClear,
+    add: handleAdd,
+    list: handleList,
+    mark: handleMark,
+    searchstatus: handleSearchStatus,
+    mailbox: handleMailbox,
+    sync: handleSync,
+    search: handleSearch,
+    setlevel: handleSetLevel
+};
 
-// 全局状态引用
-const currentUser = window.currentUser || null;
-const contentData = window.contentData || { articles: {} };
-const usersData = window.usersData || {};
-let pendingAction = window.pendingAction || null;
-let currentLoginUsername = window.currentLoginUsername || null;
-let awaitingCredentials = window.awaitingCredentials || false;
+// 确保全局可用
+if (typeof window !== 'undefined') {
+    window.commandHandlers = window.commandHandlers || {};
+    // 合并命令处理器而不是覆盖
+    Object.assign(window.commandHandlers, commandHandlers);
+    console.log("Command handlers registered:", Object.keys(commandHandlers));
+}
+
+// 核心命令处理函数
 
 // 未认证状态处理
-function handleUnauthenticated(command) {
-    console.log("Processing unauthenticated command:", command);
+function handleUnauthenticated(parts) {
+    console.log("Processing unauthenticated command:", parts);
     
     // 替换所有冒号为空格
-    command = command.replace(/:/g, ' ');
-    const parts = command.split(' ').filter(part => part !== '');
-    const cmd = parts[0].toLowerCase();
+    const command = parts.join(' ').replace(/:/g, ' ');
+    const cmdParts = command.split(' ').filter(part => part !== '');
+    const cmd = cmdParts[0].toLowerCase();
     
     if (cmd === 'login') {
-        if (parts.length < 2) {
+        if (cmdParts.length < 2) {
             addOutput('<div class="error">ERROR: Missing username</div>');
             return;
         }
-        window.currentLoginUsername = parts.slice(1).join(' ');
-        window.awaitingCredentials = true;
+        currentLoginUsername = cmdParts.slice(1).join(' ');
+        awaitingCredentials = true;
         addOutput('<div class="login-prompt">Enter credentials (username | password):</div>');
     } else {
         addOutput('<div class="error">ERROR: Invalid command</div>');
@@ -41,7 +57,7 @@ function handleCredentialInput(credentials) {
         // 验证格式
         if (!credentials.includes('|')) {
             addOutput('<div class="error">ERROR: Format must be: username | password</div>');
-            window.awaitingCredentials = false;
+            awaitingCredentials = false;
             return;
         }
 
@@ -55,17 +71,13 @@ function handleCredentialInput(credentials) {
         if (usersData[credentialKey]) {
             const user = usersData[credentialKey];
             
-            // 更灵活的用户名匹配
-            const normalizedInput = window.currentLoginUsername.toLowerCase().replace(/\s+/g, '-');
-            const normalizedUser = user.name.toLowerCase().replace(/\s+/g, '-');
-
-            if (normalizedUser.includes(normalizedInput) || 
-                normalizedInput.includes(normalizedUser)) {
-                window.currentUser = user;
-                addOutput(`<div class="user-info">Credentials accepted. User: ${user.name}<br>Position: ${user.role}, ${user.site}<br>Clearance Level: ${user.level}</div>`);
+            // 验证用户名匹配
+            if (user.name.toLowerCase() === currentLoginUsername.toLowerCase()) {
+                currentUser = user;
+                addOutput(`<div class="user-info">Credentials accepted. User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
                 addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
             } else {
-                addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${window.currentLoginUsername}, Found: ${user.name}</div>`);
+                addOutput(`<div class="error">ERROR: Username mismatch. Expected: ${currentLoginUsername}, Found: ${user.name}</div>`);
             }
         } else {
             addOutput('<div class="error">ERROR: Invalid credentials</div>');
@@ -75,13 +87,13 @@ function handleCredentialInput(credentials) {
         addOutput('<div class="error">SYSTEM ERROR: Credential processing failed</div>');
     } finally {
         // 重置状态
-        window.currentLoginUsername = null;
-        window.awaitingCredentials = false;
+        currentLoginUsername = null;
+        awaitingCredentials = false;
     }
 }
 
 // 帮助命令实现
-function handleHelp(rawCommand, parts) {
+function handleHelp(parts) {
     console.log("Handling HELP command");
     let helpText = '<div class="system-info">Available commands:<br>';
     helpText += 'ACCESS [SCP-NUMBER] - Retrieve SCP documentation<br>';
@@ -91,15 +103,15 @@ function handleHelp(rawCommand, parts) {
     helpText += 'CLEAR - Clear terminal screen<br>';
     helpText += 'HELP - Show command information<br>';
     
-    if (window.currentUser?.level >= 2) {
+    if (currentUser?.level >= 2) {
         helpText += '<span class="admin-only">ADMIN COMMANDS:<br>';
         helpText += 'ADD ACCESS - Add new SCP document<br>';
         helpText += 'LIST ARTICLES - Display all available SCP documents</span>';
     }
     
-    if (window.currentUser?.isO5) {
+    if (currentUser?.isO5) {
         helpText += '<span class="admin-only">O5 COMMANDS:<br>';
-        help极 += 'MARK [SCP-NUMBER] [MARK] - Add mark to SCP<br>';
+        helpText += 'MARK [SCP-NUMBER] [MARK] - Add mark to SCP<br>';
         helpText += 'SETLEVEL [SCP-NUMBER] [LEVEL] - Set access level<br>';
         helpText += 'SEARCHSTATUS [MARKER] - Check item status<br>';
         helpText += 'MAILBOX CHECK-DRAFT [ID] - Access draft emails</span>';
@@ -114,7 +126,7 @@ function handleHelp(rawCommand, parts) {
 }
 
 // SCP访问命令实现
-function handleAccess(rawCommand, parts) {
+function handleAccess(parts) {
     console.log("Handling ACCESS command with parts:", parts);
     if (parts.length < 2) {
         addOutput('<div class="error">ERROR: Missing SCP designation</div>');
@@ -125,18 +137,18 @@ function handleAccess(rawCommand, parts) {
     const articleId = parts[1];
     console.log("Requesting SCP:", articleId);
     
-    if (!window.contentData.articles[articleId]) {
+    if (!contentData.articles[articleId]) {
         addOutput(`<div class="error">ERROR: Document SCP-${articleId} not found</div>`);
         return;
     }
     
-    const article = window.contentData.articles[articleId];
-    if (window.currentUser.level < article.minLevel) {
+    const article = contentData.articles[articleId];
+    if (currentUser.level < article.minLevel) {
         showPermissionWarning(article.minLevel);
         return;
     }
     
-    addOutput(`<div class="user-info">User: ${window.currentUser.name}<br>Position: ${window.currentUser.role}, ${window.currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${window.currentUser.level}">Level ${window.currentUser.level}</span></div>`);
+    addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Retrieving SCP-${articleId} - ${article.title}<span class="permission-indicator level-${currentUser.level}">Level ${currentUser.level}</span></div>`);
     addOutput('<hr>');
     addOutput(`<div class="scp-header">SCP-${articleId} DOCUMENTATION - ${article.title}</div>`);
     addOutput(`<div class="scp-item">${article.content.replace(/\n/g, '<br>')}</div>`);
@@ -147,20 +159,20 @@ function handleAccess(rawCommand, parts) {
 }
 
 // 登出
-function handleLogout(rawCommand, parts) {
-    addOutput(`<div class="success">User ${window.currentUser.name} logged out</div>`);
-    window.currentUser = null;
+function handleLogout() {
+    addOutput(`<div class="success">User ${currentUser.name} logged out</div>`);
+    currentUser = null;
     addOutput('<div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>');
 }
 
 // 清除终端
-function handleClear(rawCommand, parts) {
+function handleClear() {
     const outputDiv = document.getElementById('output');
     outputDiv.innerHTML = '';
     addOutput('<div class="output-line">SCP Foundation Terminal Access System</div>');
     
-    if (window.currentUser) {
-        addOutput(`<div class="user-info">User: ${window.currentUser.name}<br>Position: ${window.currentUser.role}, ${window.currentUser.site}<br>Clearance Level: ${window.currentUser.level}</div>`);
+    if (currentUser) {
+        addOutput(`<div class="user-info">User: ${currentUser.name}<br>Position: ${currentUser.role}, ${currentUser.site}<br>Clearance Level: ${currentUser.level}</div>`);
         addOutput('<div class="command-prompt">Enter command (Type HELP for available commands)</div>');
     } else {
         addOutput('<div class="login-prompt">> Type LOGIN [USERNAME] to begin authentication</div>');
@@ -168,13 +180,13 @@ function handleClear(rawCommand, parts) {
 }
 
 // 添加文档
-function handleAdd(rawCommand, parts) {
+function handleAdd(parts) {
     if (parts[1]?.toLowerCase() !== 'access') {
         addOutput('<div class="error">ERROR: Invalid ADD command</div>');
         return;
     }
     
-    if (window.currentUser.level < 2) {
+    if (currentUser.level < 2) {
         addOutput('<div class="error">ERROR: Requires Level 2+ privileges</div>');
         return;
     }
@@ -194,21 +206,22 @@ function handleAdd(rawCommand, parts) {
     }
     
     // 提取标题和内容
-    const titleStart = rawCommand.indexOf('"');
-    const titleEnd = rawCommand.indexOf('"', titleStart + 1);
-    const contentStart = rawCommand.indexOf('"', titleEnd + 1);
-    const contentEnd = rawCommand.indexOf('"', contentStart + 1);
+    const command = parts.join(' ');
+    const titleStart = command.indexOf('"');
+    const titleEnd = command.indexOf('"', titleStart + 1);
+    const contentStart = command.indexOf('"', titleEnd + 1);
+    const contentEnd = command.indexOf('"', contentStart + 1);
     
     if (titleStart === -1 || titleEnd === -1 || contentStart === -1 || contentEnd === -1) {
         addOutput('<div class="error">ERROR: Invalid format. Make sure title and content are in double quotes</div>');
         return;
     }
     
-    const title = rawCommand.substring(titleStart + 1, titleEnd);
-    const content = rawCommand.substring(contentStart + 1, contentEnd);
+    const title = command.substring(titleStart + 1, titleEnd);
+    const content = command.substring(contentStart + 1, contentEnd);
     
     // 创建新文档
-    window.contentData.articles[articleId] = {
+    contentData.articles[articleId] = {
         title: title,
         minLevel: minLevel,
         content: content,
@@ -217,30 +230,30 @@ function handleAdd(rawCommand, parts) {
     };
     
     // 保存到本地存储
-    localStorage.setItem('contentData', JSON.stringify(window.contentData));
+    localStorage.setItem('contentData', JSON.stringify(contentData));
     
     addOutput(`<div class="success">Document SCP-${articleId} added successfully (Min Level: ${minLevel})</div>`);
 }
 
 // 列出文档
-function handleList(rawCommand, parts) {
+function handleList(parts) {
     if (parts[1]?.toLowerCase() !== 'articles') {
         addOutput('<div class="error">ERROR: Invalid LIST command</div>');
         return;
     }
     
     addOutput('<div class="system-info">Available documents:</div>');
-    for (const id in window.contentData.articles) {
-        const article = window.contentData.articles[id];
-        if (window.currentUser.level >= article.minLevel) {
+    for (const id in contentData.articles) {
+        const article = contentData.articles[id];
+        if (currentUser.level >= article.minLevel) {
             addOutput(`<div>SCP-${id}: ${article.title} (Min Level: ${article.minLevel}) ${article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join(' ')}</div>`);
         }
     }
 }
 
 // O5命令：添加标记
-function handleMark(rawCommand, parts) {
-    if (!window.currentUser?.isO5) {
+function handleMark(parts) {
+    if (!currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
     }
@@ -254,18 +267,18 @@ function handleMark(rawCommand, parts) {
     const scpNumber = parts[1];
     const newMark = parts[2];
     
-    if (!window.contentData.articles[scpNumber]) {
+    if (!contentData.articles[scpNumber]) {
         addOutput(`<div class="error">ERROR: SCP-${scpNumber} not found</div>`);
         return;
     }
     
-    if (!window.contentData.articles[scpNumber].marks) {
-        window.contentData.articles[scpNumber].marks = [];
+    if (!contentData.articles[scpNumber].marks) {
+        contentData.articles[scpNumber].marks = [];
     }
     
-    if (!window.contentData.articles[scpNumber].marks.includes(newMark)) {
-        window.contentData.articles[scpNumber].marks.push(newMark);
-        localStorage.setItem('contentData', JSON.stringify(window.contentData));
+    if (!contentData.articles[scpNumber].marks.includes(newMark)) {
+        contentData.articles[scpNumber].marks.push(newMark);
+        localStorage.setItem('contentData', JSON.stringify(contentData));
         addOutput(`<div class="success">Mark "${newMark}" added to SCP-${scpNumber}</div>`);
     } else {
         addOutput(`<div class="error">ERROR: Mark "${newMark}" already exists on SCP-${scpNumber}</div>`);
@@ -273,8 +286,8 @@ function handleMark(rawCommand, parts) {
 }
 
 // O5命令：设置权限等级
-function handleSetLevel(rawCommand, parts) {
-    if (!window.currentUser?.isO5) {
+function handleSetLevel(parts) {
+    if (!currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
     }
@@ -288,7 +301,7 @@ function handleSetLevel(rawCommand, parts) {
     const scpNumber = parts[1];
     const newLevel = parseInt(parts[2]);
     
-    if (!window.contentData.articles[scpNumber]) {
+    if (!contentData.articles[scpNumber]) {
         addOutput(`<div class="error">ERROR: SCP-${scpNumber} not found</div>`);
         return;
     }
@@ -298,14 +311,14 @@ function handleSetLevel(rawCommand, parts) {
         return;
     }
     
-    window.contentData.articles[scpNumber].minLevel = newLevel;
-    localStorage.setItem('contentData', JSON.stringify(window.contentData));
+    contentData.articles[scpNumber].minLevel = newLevel;
+    localStorage.setItem('contentData', JSON.stringify(contentData));
     addOutput(`<div class="success">SCP-${scpNumber} access level set to ${newLevel}</div>`);
 }
 
 // O5命令：搜索状态
-function handleSearchStatus(rawCommand, parts) {
-    if (!window.currentUser?.isO5) {
+function handleSearchStatus(parts) {
+    if (!currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
     }
@@ -329,8 +342,8 @@ function handleSearchStatus(rawCommand, parts) {
 }
 
 // O5命令：邮箱
-function handleMailbox(rawCommand, parts) {
-    if (!window.currentUser?.isO5) {
+function handleMailbox(parts) {
+    if (!currentUser?.isO5) {
         addOutput('<div class="error">ERROR: Requires O5 Council privileges</div>');
         return;
     }
@@ -348,7 +361,7 @@ function handleMailbox(rawCommand, parts) {
 }
 
 // 搜索命令
-function handleSearch(rawCommand, parts) {
+function handleSearch(parts) {
     if (parts.length < 2) {
         addOutput('<div class="error">ERROR: Missing search term</div>');
         addOutput('<div>Usage: SEARCH [TERM] or SEARCH MARK [MARK]</div>');
@@ -377,16 +390,14 @@ function handleSearch(rawCommand, parts) {
 
 // 搜索标记
 function searchMarks(markTerm) {
-    const lowerMark = markTerm.toLowerCase();
     const results = [];
     
-    for (const id in window.contentData.articles) {
-        const article = window.contentData.articles[id];
+    for (const id in contentData.articles) {
+        const article = contentData.articles[id];
         
-        if (window.currentUser.level < article.minLevel) continue;
+        if (currentUser.level < article.minLevel) continue;
         
-        if (article.marks && article.marks.some(m => 
-            m.toLowerCase().includes(lowerMark))) {
+        if (article.marks && article.marks.some(m => m.toLowerCase().includes(markTerm))) {
             results.push({
                 id: id,
                 article: article,
@@ -402,11 +413,11 @@ function searchMarks(markTerm) {
 function performSearch(term) {
     const results = [];
     
-    for (const id in window.contentData.articles) {
-        const article = window.contentData.articles[id];
+    for (const id in contentData.articles) {
+        const article = contentData.articles[id];
         
         // 检查用户权限
-        if (window.currentUser.level < article.minLevel) continue;
+        if (currentUser.level < article.minLevel) continue;
         
         // 在标题、内容和标签中搜索
         const inTitle = article.title.toLowerCase().includes(term);
@@ -440,17 +451,15 @@ function displaySearchResults(results, term, isMarkSearch = false) {
         const result = results[0];
         const searchType = isMarkSearch ? 'mark' : 'keyword';
         addOutput(`<div class="search-results">1 result matching the ${searchType} "${term}" was found in the Chinese branch database:</div>`);
-        
-        addOutput(
-            `<div class="search-item">` +
-            `<strong>SCP-${result.id}</strong>: ${highlightMatches(result.article.title, term)} ` +
-            `${result.article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join('')}` +
-            `</div>`
-        );
-        
+        addOutput(`
+            <div class="search-item">
+                <strong>SCP-${result.id}</strong>: ${highlightMatches(result.article.title, term)}
+                ${result.article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join('')}
+            </div>
+        `);
         addOutput('<div class="search-confirm">Do you want to access the document (Y/N)?</div>');
         
-        window.pendingAction = (confirmed) => {
+        pendingAction = (confirmed) => {
             if (confirmed) {
                 handleAccess(['ACCESS', result.id]);
             } else {
@@ -463,12 +472,12 @@ function displaySearchResults(results, term, isMarkSearch = false) {
     addOutput(`<div class="search-results">${results.length} results matching the ${isMarkSearch ? 'mark' : 'keyword'} "${term}" were found in the Chinese branch database:</div>`);
     
     results.forEach(result => {
-        addOutput(
-            `<div class="search-item">` +
-            `<strong>SCP-${result.id}</strong>: ${highlightMatches(result.article.title, term)} ` +
-            `${result.article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join('')}` +
-            `</div>`
-        );
+        addOutput(`
+            <div class="search-item">
+                <strong>SCP-${result.id}</strong>: ${highlightMatches(result.article.title, term)}
+                ${result.article.marks?.map(m => `<span class="mark-tag">${m}</span>`).join('')}
+            </div>
+        `);
     });
 }
 
@@ -486,7 +495,7 @@ function escapeRegExp(string) {
 }
 
 // 同步命令
-function handleSync(rawCommand, parts) {
+function handleSync(parts) {
     if (parts.length < 4) {
         addOutput('<div class="error">Format: SYNC [ACTION] [USER/REPO] [TOKEN]</div>');
         addOutput('<div>Actions: UPLOAD, DOWNLOAD</div>');
@@ -498,29 +507,15 @@ function handleSync(rawCommand, parts) {
     const token = parts[3];
     
     if (action === 'upload') {
-        window.handleSyncUpload(repo, token);
+        handleSyncUpload(repo, token);
     } else if (action === 'download') {
-        window.handleSyncDownload(repo, token);
+        handleSyncDownload(repo, token);
     } else {
         addOutput('<div class="error">ERROR: Invalid sync action. Use UPLOAD or DOWNLOAD</div>');
     }
 }
 
-// 注册命令处理器
-window.commandHandlers.help = handleHelp;
-window.commandHandlers.login = handleLogin;
-window.commandHandlers.access = handleAccess;
-window.commandHandlers.logout = handleLogout;
-window.commandHandlers.clear = handleClear;
-window.commandHandlers.add = handleAdd;
-window.commandHandlers.list = handleList;
-window.commandHandlers.mark = handleMark;
-window.commandHandlers.searchstatus = handleSearchStatus;
-window.commandHandlers.mailbox = handleMailbox;
-window.commandHandlers.sync = handleSync;
-window.commandHandlers.search = handleSearch;
-window.commandHandlers.setlevel = handleSetLevel;
-
-// 暴露必要的函数到全局
-window.handleCredentialInput = handleCredentialInput;
-window.handleUnauthenticated = handleUnauthenticated;
+// 权限警告函数（假设未定义时补充）
+function showPermissionWarning(minLevel) {
+    addOutput(`<div class="error">ERROR: Access denied. Required clearance level: ${minLevel}</div>`);
+}
